@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Math Party: High School Edition</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- PeerJS -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <style>
+    :root {
+      --gold: #facc15;
+      --gold2: #f59e0b;
+      --ink: #17110a;
+      --paper: #f5e6bd;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --green: #10b981;
+      --cyan: #06b6d4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(250, 204, 21, .12), transparent 20%),
+        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, .12), transparent 25%),
+        linear-gradient(135deg, #0b1020, #17132c 45%, #081b21);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .14;
+      background-image:
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 10px,
+          rgba(255,255,255,.03) 10px,
+          rgba(255,255,255,.03) 11px
+        );
+    }
+
+    h1, h2, h3, .cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, .56);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 15px 50px rgba(0,0,0,.28);
+    }
+
+    .parchment {
+      background:
+        linear-gradient(rgba(255,255,255,.05), rgba(0,0,0,.08)),
+        radial-gradient(circle at center, #f9edc9, #d4ad6a);
+      color: var(--ink);
+      border: 7px solid #6b4525;
+      box-shadow:
+        inset 0 0 25px rgba(76,42,15,.45),
+        0 18px 45px rgba(0,0,0,.5);
+    }
+
+    .btn-magic {
+      position: relative;
+      overflow: hidden;
+      transition: .2s ease;
+    }
+
+    .btn-magic:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 10px 30px rgba(250,204,21,.2);
+    }
+
+    .btn-magic:active {
+      transform: scale(.98);
+    }
+
+    #board {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 18px;
+      background: #192432;
+    }
+
+    .board-wrap {
+      position: relative;
+      max-width: 1100px;
+      margin: auto;
+      border: 12px solid #6b4525;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 4px #d6ad61,
+        0 25px 70px rgba(0,0,0,.5);
+    }
+
+    .player-card {
+      transition: .25s ease;
+    }
+
+    .player-card.active {
+      transform: translateY(-4px);
+      border-color: rgba(250,204,21,.9);
+      box-shadow: 0 0 25px rgba(250,204,21,.25);
+    }
+
+    .dice-stage {
+      width: 100px;
+      height: 100px;
+      perspective: 700px;
+      margin: 0 auto;
+    }
+
+    .dice {
+      width: 90px;
+      height: 90px;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(-18deg) rotateY(25deg);
+      transition: transform .8s cubic-bezier(.2,.9,.2,1);
+    }
+
+    .dice.rolling {
+      animation: diceRoll .75s linear infinite;
+    }
+
+    @keyframes diceRoll {
+      0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+      100% { transform: rotateX(720deg) rotateY(540deg) rotateZ(360deg); }
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, #fff, #cbd5e1);
+      color: #111827;
+      border: 2px solid #fff;
+      border-radius: 14px;
+      font-size: 42px;
+      font-weight: 900;
+      box-shadow: inset 0 0 20px rgba(0,0,0,.1);
+    }
+
+    .face:nth-child(1) { transform: translateZ(45px); }
+    .face:nth-child(2) { transform: rotateY(180deg) translateZ(45px); }
+    .face:nth-child(3) { transform: rotateY(90deg) translateZ(45px); }
+    .face:nth-child(4) { transform: rotateY(-90deg) translateZ(45px); }
+    .face:nth-child(5) { transform: rotateX(90deg) translateZ(45px); }
+    .face:nth-child(6) { transform: rotateX(-90deg) translateZ(45px); }
+
+    .modal-bg {
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(8px);
+    }
+
+    .hidden-modal {
+      display: none !important;
+    }
+
+    .answer-btn {
+      transition: .18s ease;
+    }
+
+    .answer-btn:hover {
+      transform: translateX(5px);
+    }
+
+    .toast {
+      animation: toastIn .35s ease, toastOut .4s ease 3.2s forwards;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-20px) scale(.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+
+    .timer-bar {
+      transition: width 1s linear;
+    }
+
+    .star {
+      color: var(--gold);
+      filter: drop-shadow(0 0 5px rgba(250,204,21,.65));
+    }
+
+    #miniCanvas {
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      border-radius: 18px;
+      background: #07111c;
+      border: 3px solid rgba(250,204,21,.5);
+    }
+
+    @media (max-width: 768px) {
+      .dice-stage {
+        transform: scale(.8);
+        margin-top: -10px;
+        margin-bottom: -10px;
+      }
+
+      .hud-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOASTS -->
+  <div id="toastContainer"
+    class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md space-y-3 pointer-events-none">
+  </div>
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/50 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap gap-3 items-center justify-between">
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl grid place-items-center bg-gradient-to-br from-yellow-300 to-amber-600 text-slate-950 shadow-lg">
+          <i class="fa-solid fa-dice-d20 text-xl"></i>
+        </div>
+
+        <div>
+          <h1 class="text-lg md:text-2xl font-bold tracking-wide">
+            Math Party
+          </h1>
+          <p class="text-xs text-slate-300">
+            High School Edition
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+
+        <div class="glass rounded-xl px-3 py-2 text-xs">
+          <i class="fa-solid fa-key text-yellow-300 mr-1"></i>
+          Sala:
+          <strong id="roomCode">LOCAL</strong>
+        </div>
+
+        <button id="copyRoomBtn"
+          class="btn-magic glass px-3 py-2 rounded-xl text-sm hover:bg-white/10">
+          <i class="fa-solid fa-copy"></i>
+        </button>
+
+        <button id="soundBtn"
+          class="btn-magic glass px-3 py-2 rounded-xl text-sm hover:bg-white/10">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+
+  <main class="max-w-7xl mx-auto px-4 py-5">
+
+    <!-- MENU -->
+    <section id="menuScreen"
+      class="min-h-[80vh] flex items-center justify-center">
+
+      <div class="glass w-full max-w-5xl rounded-3xl p-6 md:p-10">
+
+        <div class="text-center mb-10">
+
+          <div class="inline-flex w-20 h-20 rounded-full items-center justify-center bg-gradient-to-br from-yellow-300 to-orange-500 text-slate-900 shadow-2xl mb-5">
+            <i class="fa-solid fa-crown text-4xl"></i>
+          </div>
+
+          <h2 class="text-3xl md:text-5xl font-bold cinzel">
+            Math Party
+          </h2>
+
+          <p class="mt-3 text-slate-300 max-w-2xl mx-auto">
+            Um jogo de tabuleiro medieval onde matemática, lógica,
+            magia e estratégia decidem quem conquistará o Reino do Saber.
+          </p>
+
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+          <!-- SOLO -->
+          <div class="rounded-3xl p-6 border border-white/10 bg-white/5 hover:bg-white/[.08] transition">
+
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-14 h-14 rounded-2xl bg-red-500/20 text-red-300 grid place-items-center text-2xl">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+
+              <div>
+                <h3 class="text-xl font-bold cinzel">Modo Solo</h3>
+                <p class="text-sm text-slate-400">
+                  Você contra Newton, Gauss e Hypatia.
+                </p>
+              </div>
+            </div>
+
+            <button id="soloBtn"
+              class="btn-magic w-full mt-4 bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold py-3 rounded-xl">
+              <i class="fa-solid fa-play mr-2"></i>
+              Iniciar Aventura
+            </button>
+
+          </div>
+
+          <!-- MULTIPLAYER -->
+          <div class="rounded-3xl p-6 border border-white/10 bg-white/5">
+
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 text-cyan-300 grid place-items-center text-2xl">
+                <i class="fa-solid fa-users"></i>
+              </div>
+
+              <div>
+                <h3 class="text-xl font-bold cinzel">Multiplayer</h3>
+                <p class="text-sm text-slate-400">
+                  Estrutura de sala local/P2P.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid gap-3">
+
+              <button id="createRoomBtn"
+                class="btn-magic w-full bg-cyan-500/90 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl">
+                <i class="fa-solid fa-door-open mr-2"></i>
+                Criar Sala
+              </button>
+
+              <button id="joinRoomBtn"
+                class="btn-magic w-full glass hover:bg-white/10 font-bold py-3 rounded-xl">
+                <i class="fa-solid fa-right-to-bracket mr-2"></i>
+                Entrar com Código
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- CLASSES -->
+        <div class="mt-10">
+
+          <h3 class="text-center text-xl font-bold cinzel mb-5">
+            Escolha sua Classe
+          </h3>
+
+          <div id="classSelection"
+            class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            <button data-class="Paladino"
+              class="class-btn rounded-2xl p-4 border-2 border-red-500 bg-red-500/10 hover:bg-red-500/20">
+
+              <i class="fa-solid fa-shield-halved text-3xl text-red-400"></i>
+
+              <h4 class="font-bold mt-2">Paladino</h4>
+
+              <p class="text-xs text-slate-400 mt-1">
+                Coragem e disciplina.
+              </p>
+
+            </button>
+
+            <button data-class="Mago"
+              class="class-btn rounded-2xl p-4 border border-white/10 hover:border-blue-400 bg-blue-500/5">
+
+              <i class="fa-solid fa-hat-wizard text-3xl text-blue-400"></i>
+
+              <h4 class="font-bold mt-2">Mago</h4>
+
+              <p class="text-xs text-slate-400 mt-1">
+                Mestre das fórmulas.
+              </p>
+
+            </button>
+
+            <button data-class="Patrulheiro"
+              class="class-btn rounded-2xl p-4 border border-white/10 hover:border-emerald-400 bg-emerald-500/5">
+
+              <i class="fa-solid fa-bow-arrow text-3xl text-emerald-400"></i>
+
+              <h4 class="font-bold mt-2">Patrulheiro</h4>
+
+              <p class="text-xs text-slate-400 mt-1">
+                Precisão e estratégia.
+              </p>
+
+            </button>
+
+            <button data-class="Alquimista"
+              class="class-btn rounded-2xl p-4 border border-white/10 hover:border-cyan-400 bg-cyan-500/5">
+
+              <i class="fa-solid fa-flask text-3xl text-cyan-400"></i>
+
+              <h4 class="font-bold mt-2">Alquimista</h4>
+
+              <p class="text-xs text-slate-400 mt-1">
+                Transformação e lógica.
+              </p>
+
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+
+    <section id="gameScreen" class="hidden">
+
+      <!-- ROUND -->
+      <div class="glass rounded-2xl p-4 mb-5 flex flex-wrap justify-between gap-4 items-center">
+
+        <div>
+          <p class="text-xs uppercase tracking-widest text-yellow-300">
+            Rodada
+          </p>
+
+          <h2 class="text-2xl font-bold">
+            <span id="roundDisplay">1</span>
+          </h2>
+        </div>
+
+        <div class="text-center flex-1">
+          <p class="text-xs uppercase tracking-widest text-slate-400">
+            Agora é a vez de
+          </p>
+
+          <h2 id="turnDisplay"
+            class="cinzel text-xl md:text-3xl text-yellow-300">
+            Paladino
+          </h2>
+        </div>
+
+        <div class="text-right">
+          <p class="text-xs uppercase tracking-widest text-slate-400">
+            Objetivo
+          </p>
+
+          <p class="font-bold text-sm">
+            ★ 3 ou ✦ 600
+          </p>
+        </div>
+
+      </div>
+
+      <!-- HUD -->
+
+      <div id="hud"
+        class="hud-grid grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      </div>
+
+      <!-- BOARD -->
+
+      <div class="board-wrap">
+        <canvas id="board" width="1000" height="650"></canvas>
+      </div>
+
+      <!-- CONTROLS -->
+
+      <div class="mt-6 grid md:grid-cols-3 gap-5 items-center">
+
+        <div class="glass rounded-2xl p-5 text-center">
+
+          <p class="text-xs uppercase tracking-widest text-slate-400 mb-2">
+            Dado Arcano
+          </p>
+
+          <div class="dice-stage">
+
+            <div id="dice" class="dice">
+
+              <div class="face">1</div>
+              <div class="face">2</div>
+              <div class="face">3</div>
+              <div class="face">4</div>
+              <div class="face">5</div>
+              <div class="face">6</div>
+
+            </div>
+
+          </div>
+
+          <div id="diceValue"
+            class="text-2xl font-black text-yellow-300 mt-2">
+            ?
+          </div>
+
+        </div>
+
+        <div class="glass rounded-2xl p-5 text-center">
+
+          <button id="rollBtn"
+            class="btn-magic bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 font-black text-lg px-8 py-4 rounded-2xl shadow-xl">
+
+            <i class="fa-solid fa-dice mr-2"></i>
+            ROLAR O DADO
+
+          </button>
+
+          <p id="statusText"
+            class="text-sm text-slate-300 mt-4">
+            Prepare-se para a aventura!
+          </p>
+
+        </div>
+
+        <div class="glass rounded-2xl p-5">
+
+          <h3 class="font-bold cinzel mb-3">
+            Runas do Tabuleiro
+          </h3>
+
+          <div class="grid grid-cols-2 gap-2 text-xs text-slate-300">
+
+            <div>🔺 Álgebra</div>
+            <div>📐 Geometria</div>
+            <div>ƒ Funções</div>
+            <div>🔎 Análise</div>
+            <div>⚡ +50 Pontos</div>
+            <div>★ +1 Estrela</div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= QUIZ MODAL ================= -->
+
+  <div id="quizModal"
+    class="fixed inset-0 z-50 modal-bg items-center justify-center p-4 hidden-modal">
+
+    <div class="parchment max-w-2xl w-full rounded-3xl p-5 md:p-8 relative">
+
+      <div class="absolute top-4 right-5 font-bold text-lg">
+        <i class="fa-solid fa-hourglass-half mr-1"></i>
+        <span id="timerText">50</span>s
+      </div>
+
+      <div class="mb-5">
+
+        <div class="h-3 rounded-full overflow-hidden bg-black/15">
+
+          <div id="timerBar"
+            class="timer-bar h-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-500"
+            style="width:100%">
+          </div>
+
+        </div>
+
+      </div>
+
+      <p id="questionCategory"
+        class="font-bold text-amber-800 uppercase text-xs tracking-widest">
+      </p>
+
+      <h2 id="questionText"
+        class="text-xl md:text-2xl font-bold mt-3 mb-6">
+      </h2>
+
+      <div id="answers"
+        class="grid gap-3">
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ================= MINIGAME ================= -->
+
+  <div id="miniModal"
+    class="fixed inset-0 z-50 modal-bg items-center justify-center p-4 hidden-modal">
+
+    <div class="glass max-w-4xl w-full rounded-3xl p-5 md:p-7 text-center">
+
+      <h2 id="miniTitle"
+        class="text-2xl md:text-4xl font-bold cinzel text-yellow-300">
+      </h2>
+
+      <p id="miniInstructions"
+        class="text-slate-300 my-3">
+      </p>
+
+      <canvas id="miniCanvas"
+        width="800"
+        height="420">
+      </canvas>
+
+      <div class="mt-4 flex justify-between text-sm">
+
+        <span>
+          Tempo:
+          <strong id="miniTimer">10</strong>s
+        </span>
+
+        <span>
+          Use
+          <strong>← → ou A D</strong>
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ================= WIN MODAL ================= -->
+
+  <div id="winModal"
+    class="fixed inset-0 z-[80] modal-bg items-center justify-center p-4 hidden-modal">
+
+    <div class="glass max-w-2xl w-full rounded-3xl p-7 md:p-10 text-center">
+
+      <div class="text-7xl text-yellow-300 mb-4">
+        <i class="fa-solid fa-crown"></i>
+      </div>
+
+      <p class="uppercase tracking-[.3em] text-yellow-300 text-xs">
+        Campeão do Reino
+      </p>
+
+      <h2 id="winnerName"
+        class="text-3xl md:text-5xl cinzel font-bold mt-3">
+      </h2>
+
+      <div id="finalStats"
+        class="grid grid-cols-2 gap-3 mt-8">
+      </div>
+
+      <button onclick="location.reload()"
+        class="btn-magic mt-8 bg-yellow-400 hover:bg-yellow-300 text-slate-950 px-8 py-3 rounded-xl font-black">
+
+        <i class="fa-solid fa-rotate-right mr-2"></i>
+        Jogar Novamente
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+<script>
+/* ============================================================
+   MATH PARTY: HIGH SCHOOL EDITION
+   ============================================================ */
+
+const board = document.getElementById("board");
+const ctx = board.getContext("2d");
+
+const miniCanvas = document.getElementById("miniCanvas");
+const mctx = miniCanvas.getContext("2d");
+
+let selectedClass = "Paladino";
+let currentPlayer = 0;
+let round = 1;
+let gameRunning = false;
+let isMuted = false;
+let isRolling = false;
+let timerInterval = null;
+let miniInterval = null;
+
+let players = [];
+let peer = null;
+let roomId = null;
+
+const classData = {
+  Paladino: {
+    color: "#ef4444",
+    icon: "fa-shield-halved"
+  },
+  Mago: {
+    color: "#3b82f6",
+    icon: "fa-hat-wizard"
+  },
+  Patrulheiro: {
+    color: "#10b981",
+    icon: "fa-bow-arrow"
+  },
+  Alquimista: {
+    color: "#06b6d4",
+    icon: "fa-flask"
+  }
+};
+
+/* ============================================================
+   QUESTIONS
+   ============================================================ */
+
+const questions = [
+
+  {
+    category:"Álgebra",
+    q:"Resolva: 3x + 5 = 20",
+    answers:["3","5","7","10"],
+    correct:1
+  },
+  {
+    category:"Álgebra",
+    q:"Quanto vale x em 2x − 8 = 12?",
+    answers:["2","5","8","10"],
+    correct:3
+  },
+  {
+    category:"Operações",
+    q:"Quanto é 15 × 8?",
+    answers:["100","110","120","130"],
+    correct:2
+  },
+  {
+    category:"Frações",
+    q:"Quanto é 1/2 + 1/4?",
+    answers:["2/6","3/4","1/8","2/4"],
+    correct:1
+  },
+  {
+    category:"Porcentagem",
+    q:"20% de 250 é:",
+    answers:["25","40","50","60"],
+    correct:2
+  },
+  {
+    category:"Geometria",
+    q:"Um quadrado possui lado 8 cm. Qual é sua área?",
+    answers:["16","32","64","80"],
+    correct:2
+  },
+  {
+    category:"Geometria",
+    q:"Um triângulo possui base 10 e altura 6. Sua área é:",
+    answers:["16","30","60","80"],
+    correct:1
+  },
+  {
+    category:"Funções",
+    q:"Na função f(x)=2x+1, quanto vale f(3)?",
+    answers:["5","6","7","8"],
+    correct:2
+  },
+  {
+    category:"Lógica",
+    q:"Se todos os dragões são criaturas e algumas criaturas voam, podemos concluir que:",
+    answers:[
+      "Todos os dragões voam",
+      "Nenhum dragão voa",
+      "Alguns dragões podem voar, mas não é garantido",
+      "Todos os seres voadores são dragões"
+    ],
+    correct:2
+  },
+  {
+    category:"Proporção",
+    q:"Se 3 livros custam R$ 45, quanto custam 5 livros iguais?",
+    answers:["60","70","75","80"],
+    correct:2
+  },
+  {
+    category:"Potenciação",
+    q:"Quanto é 2⁵?",
+    answers:["10","16","25","32"],
+    correct:3
+  },
+  {
+    category:"Radiciação",
+    q:"√144 é:",
+    answers:["10","11","12","14"],
+    correct:2
+  },
+  {
+    category:"Equações",
+    q:"x² = 49. Considerando x positivo:",
+    answers:["5","6","7","8"],
+    correct:2
+  },
+  {
+    category:"Geometria",
+    q:"O perímetro de um retângulo de lados 5 e 8 é:",
+    answers:["13","26","40","64"],
+    correct:1
+  },
+  {
+    category:"Porcentagem",
+    q:"Um produto de R$ 200 recebeu desconto de 15%. Novo preço:",
+    answers:["170","175","180","185"],
+    correct:0
+  },
+  {
+    category:"Razão",
+    q:"A razão entre 12 e 3 é:",
+    answers:["2","3","4","6"],
+    correct:2
+  },
+  {
+    category:"Lógica",
+    q:"Complete: 2, 4, 8, 16, __",
+    answers:["20","24","30","32"],
+    correct:3
+  },
+  {
+    category:"Lógica",
+    q:"Qual número completa a sequência: 1, 1, 2, 3, 5, 8, __?",
+    answers:["11","12","13","15"],
+    correct:2
+  },
+  {
+    category:"Funções",
+    q:"Se f(x)=x², então f(−4) é:",
+    answers:["−16","−8","8","16"],
+    correct:3
+  },
+  {
+    category:"Média",
+    q:"A média de 6, 8 e 10 é:",
+    answers:["7","8","9","10"],
+    correct:1
+  },
+  {
+    category:"Probabilidade",
+    q:"Qual a probabilidade de obter cara ao lançar uma moeda justa?",
+    answers:["25%","50%","75%","100%"],
+    correct:1
+  },
+  {
+    category:"Frações",
+    q:"2/3 de 30 é:",
+    answers:["10","15","20","25"],
+    correct:2
+  },
+  {
+    category:"Regra de Três",
+    q:"Se 4 máquinas produzem 100 peças, mantendo a proporção, 8 máquinas produzem:",
+    answers:["150","180","200","400"],
+    correct:2
+  },
+  {
+    category:"Análise",
+    q:"Qual é o maior número?",
+    answers:["0,75","3/4","0,7","Todos representam o mesmo valor"],
+    correct:3
+  },
+  {
+    category:"Álgebra",
+    q:"Simplifique: 5a + 3a − 2a",
+    answers:["5a","6a","8a","10a"],
+    correct:1
+  },
+  {
+    category:"Geometria",
+    q:"A soma dos ângulos internos de um triângulo é:",
+    answers:["90°","180°","270°","360°"],
+    correct:1
+  },
+  {
+    category:"Geometria",
+    q:"Um círculo possui raio 5. Usando π≈3,14, sua área aproximada é:",
+    answers:["31,4","62,8","78,5","157"],
+    correct:2
+  },
+  {
+    category:"Equações",
+    q:"Resolva: 4x = 36",
+    answers:["6","8","9","12"],
+    correct:2
+  },
+  {
+    category:"Operações",
+    q:"Quanto é 144 ÷ 12?",
+    answers:["10","11","12","13"],
+    correct:2
+  },
+  {
+    category:"Porcentagem",
+    q:"50% corresponde à fração:",
+    answers:["1/4","1/2","2/3","3/4"],
+    correct:1
+  },
+  {
+    category:"Lógica",
+    q:"Se hoje é terça-feira, daqui a 10 dias será:",
+    answers:["Quinta","Sexta","Sábado","Domingo"],
+    correct:1
+  },
+  {
+    category:"Potência",
+    q:"10³ é igual a:",
+    answers:["30","100","300","1000"],
+    correct:3
+  },
+  {
+    category:"Funções",
+    q:"Em y = −2x, se x=4, y é:",
+    answers:["−8","−4","4","8"],
+    correct:0
+  },
+  {
+    category:"Geometria",
+    q:"A diagonal de um quadrado de lado 1 é:",
+    answers:["1/2","√2","2","√3"],
+    correct:1
+  },
+  {
+    category:"Frações",
+    q:"Qual é equivalente a 3/6?",
+    answers:["1/3","1/2","2/3","3/2"],
+    correct:1
+  },
+  {
+    category:"Lógica",
+    q:"Todos os números pares são divisíveis por:",
+    answers:["2","3","5","10"],
+    correct:0
+  },
+  {
+    category:"Operações",
+    q:"(12 + 8) × 2 =",
+    answers:["28","32","40","48"],
+    correct:2
+  },
+  {
+    category:"Equações",
+    q:"x + 17 = 42. x é:",
+    answers:["15","20","25","30"],
+    correct:2
+  },
+  {
+    category:"Proporção",
+    q:"2/5 de uma turma corresponde a 12 alunos. Quantos alunos há na turma?",
+    answers:["20","25","30","35"],
+    correct:2
+  },
+  {
+    category:"Geometria",
+    q:"Um losango tem diagonais 10 e 6. Sua área é:",
+    answers:["16","30","60","80"],
+    correct:1
+  },
+  {
+    category:"Sequência",
+    q:"3, 6, 12, 24, __",
+    answers:["36","42","48","50"],
+    correct:2
+  },
+  {
+    category:"Porcentagem",
+    q:"Aumentar 100 em 20% resulta em:",
+    answers:["110","115","120","125"],
+    correct:2
+  },
+  {
+    category:"Raciocínio",
+    q:"Qual destes números é primo?",
+    answers:["21","27","29","33"],
+    correct:2
+  },
+  {
+    category:"Média",
+    q:"A média de 4, 6, 8 e 10 é:",
+    answers:["6","7","8","9"],
+    correct:1
+  },
+  {
+    category:"Análise",
+    q:"Se um valor dobra e depois dobra novamente, ele fica:",
+    answers:["2 vezes maior","3 vezes maior","4 vezes o valor inicial","8 vezes o valor inicial"],
+    correct:2
+  },
+  {
+    category:"Lógica",
+    q:"Qual símbolo completa a sequência? ▲ ● ▲ ● ▲ __",
+    answers:["▲","●","■","◆"],
+    correct:1
+  }
+
+];
+
+
+/* ============================================================
+   BOARD SPACES
+   ============================================================ */
+
+const spaces = [
+  "start","algebra","bonus","geometry","functions",
+  "analysis","star","algebra","bonus","geometry",
+  "functions","analysis","star","bonus","algebra",
+  "geometry","functions","analysis","bonus","star"
+];
+
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+
+function sound(type="click") {
+
+  if (isMuted) return;
+
+  try {
+
+    const AudioCtx =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    const audio = new AudioCtx();
+
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+
+    osc.connect(gain);
+    gain.connect(audio.destination);
+
+    let frequency = 440;
+    let duration = 0.12;
+
+    if (type === "dice") {
+      frequency = 180 + Math.random() * 120;
+      duration = 0.08;
+    }
+
+    if (type === "correct") {
+      frequency = 880;
+      duration = 0.3;
+    }
+
+    if (type === "wrong") {
+      frequency = 140;
+      duration = 0.35;
+    }
+
+    if (type === "star") {
+      frequency = 1200;
+      duration = 0.5;
+    }
+
+    if (type === "jump") {
+      frequency = 500;
+      duration = 0.12;
+    }
+
+    osc.frequency.value = frequency;
+
+    gain.gain.setValueAtTime(.12, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,
+      audio.currentTime + duration);
+
+    osc.start();
+    osc.stop(audio.currentTime + duration);
+
+  } catch(e) {}
+
+}
+
+
+/* ============================================================
+   UI HELPERS
+   ============================================================ */
+
+function toast(message, icon="fa-scroll") {
+
+  const div = document.createElement("div");
+
+  div.className =
+    "toast parchment rounded-2xl px-5 py-4 shadow-2xl text-center font-bold";
+
+  div.innerHTML = `
+    <i class="fa-solid ${icon} text-amber-700 mr-2"></i>
+    ${message}
+  `;
+
+  document
+    .getElementById("toastContainer")
+    .appendChild(div);
+
+  setTimeout(() => div.remove(), 3800);
+
+}
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+/* ============================================================
+   CLASS SELECTION
+   ============================================================ */
+
+document.querySelectorAll(".class-btn")
+.forEach(btn => {
+
+  btn.addEventListener("click", () => {
+
+    selectedClass = btn.dataset.class;
+
+    document.querySelectorAll(".class-btn")
+      .forEach(b => {
+
+        b.classList.remove(
+          "border-red-500",
+          "border-blue-500",
+          "border-emerald-500",
+          "border-cyan-500",
+          "ring-4",
+          "ring-yellow-400/30"
+        );
+
+        b.classList.add("border-white/10");
+
+      });
+
+    btn.classList.remove("border-white/10");
+
+    btn.classList.add(
+      "ring-4",
+      "ring-yellow-400/30"
+    );
+
+    toast(
+      `${selectedClass} escolhido para a aventura!`,
+      classData[selectedClass].icon
+    );
+
+  });
+
+});
+
+
+/* ============================================================
+   START SOLO
+   ============================================================ */
+
+document
+  .getElementById("soloBtn")
+  .addEventListener("click", () => {
+
+    startGame();
+
+  });
+
+
+function startGame() {
+
+  players = [
+
+    {
+      name:"Você",
+      class:selectedClass,
+      color:classData[selectedClass].color,
+      position:0,
+      score:0,
+      stars:0,
+      human:true
+    },
+
+    {
+      name:"Bot Newton",
+      class:"Paladino",
+      color:"#ef4444",
+      position:0,
+      score:0,
+      stars:0,
+      human:false
+    },
+
+    {
+      name:"Bot Gauss",
+      class:"Mago",
+      color:"#3b82f6",
+      position:0,
+      score:0,
+      stars:0,
+      human:false
+    },
+
+    {
+      name:"Bot Hypatia",
+      class:"Patrulheiro",
+      color:"#10b981",
+      position:0,
+      score:0,
+      stars:0,
+      human:false
+    }
+
+  ];
+
+  currentPlayer = 0;
+  round = 1;
+  gameRunning = true;
+
+  document
+    .getElementById("menuScreen")
+    .classList.add("hidden");
+
+  document
+    .getElementById("gameScreen")
+    .classList.remove("hidden");
+
+  updateHUD();
+  drawBoard();
+
+  document
+    .getElementById("statusText")
+    .textContent =
+      "Sua jornada começa agora. Role o dado!";
+
+  toast(
+    "A aventura matemática começou!",
+    "fa-dragon"
+  );
+
+}
+
+
+/* ============================================================
+   HUD
+   ============================================================ */
+
+function updateHUD() {
+
+  const hud =
+    document.getElementById("hud");
+
+  hud.innerHTML = "";
+
+  players.forEach((player,index) => {
+
+    const active =
+      index === currentPlayer
+      ? "active"
+      : "";
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      `player-card glass rounded-2xl p-4 border ${active}`;
+
+    card.style.borderColor =
+      index === currentPlayer
+      ? player.color
+      : "rgba(255,255,255,.1)";
+
+    const icon =
+      classData[player.class]?.icon ||
+      "fa-user";
+
+    card.innerHTML = `
+
+      <div class="flex items-center gap-3">
+
+        <div
+          class="w-11 h-11 rounded-xl grid place-items-center text-white"
+          style="background:${player.color}">
+
+          <i class="fa-solid ${icon}"></i>
+
+        </div>
+
+        <div class="min-w-0">
+
+          <h3 class="font-bold truncate">
+            ${player.name}
+          </h3>
+
+          <p class="text-xs text-slate-400">
+            ${player.class}
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mt-4">
+
+        <div class="rounded-lg bg-black/20 p-2">
+
+          <div class="text-[10px] text-slate-400 uppercase">
+            Conhecimento
+          </div>
+
+          <strong class="text-yellow-300">
+            ${player.score}
+          </strong>
+
+        </div>
+
+        <div class="rounded-lg bg-black/20 p-2">
+
+          <div class="text-[10px] text-slate-400 uppercase">
+            Estrelas
+          </div>
+
+          <strong class="star">
+            ★ ${player.stars}
+          </strong>
+
+        </div>
+
+      </div>
+
+    `;
+
+    hud.appendChild(card);
+
+  });
+
+  document
+    .getElementById("turnDisplay")
+    .textContent =
+      players[currentPlayer]?.name || "";
+
+  document
+    .getElementById("roundDisplay")
+    .textContent = round;
+
+}
+
+
+/* ============================================================
+   DRAW BOARD
+   ============================================================ */
+
+function getSpacePosition(index) {
+
+  const marginX = 80;
+  const marginY = 80;
+
+  const cols = 6;
+  const rows = 4;
+
+  const col = index % cols;
+  const row = Math.floor(index / cols);
+
+  let x = marginX +
+    col * ((board.width - marginX * 2) / (cols - 1));
+
+  let y;
+
+  if (row % 2 === 0) {
+    y = marginY +
+      row * ((board.height - marginY * 2) / (rows - 1));
+  } else {
+    x = board.width - x;
+    y = marginY +
+      row * ((board.height - marginY * 2) / (rows - 1));
+  }
+
+  return {x,y};
+
+}
+
+
+function drawBoard() {
+
+  ctx.clearRect(
+    0,
+    0,
+    board.width,
+    board.height
+  );
+
+  /* BACKGROUND */
+
+  const bg =
+    ctx.createLinearGradient(
+      0,0,
+      board.width,
+      board.height
+    );
+
+  bg.addColorStop(0,"#173028");
+  bg.addColorStop(.5,"#29402e");
+  bg.addColorStop(1,"#15251f");
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(
+    0,
+    0,
+    board.width,
+    board.height
+  );
+
+  /* DECORATIVE STARS */
+
+  for(let i=0;i<80;i++){
+
+    ctx.fillStyle =
+      `rgba(255,255,255,${Math.random()*.08})`;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      Math.random()*board.width,
+      Math.random()*board.height,
+      Math.random()*2,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+  }
+
+  /* PATH */
+
+  ctx.strokeStyle =
+    "rgba(247,211,130,.38)";
+
+  ctx.lineWidth = 12;
+
+  ctx.lineCap = "round";
+
+  ctx.beginPath();
+
+  spaces.forEach((_,i)=>{
+
+    const p =
+      getSpacePosition(i);
+
+    if(i===0){
+      ctx.moveTo(p.x,p.y);
+    } else {
+      ctx.lineTo(p.x,p.y);
+    }
+
+  });
+
+  ctx.stroke();
+
+  /* SPACES */
+
+  spaces.forEach((type,i)=>{
+
+    const p =
+      getSpacePosition(i);
+
+    let color = "#d8c08c";
+    let symbol = "✦";
+
+    if(type === "start"){
+      color = "#facc15";
+      symbol = "♜";
+    }
+
+    if(type === "algebra"){
+      color = "#a855f7";
+      symbol = "x";
+    }
+
+    if(type === "geometry"){
+      color = "#3b82f6";
+      symbol = "△";
+    }
+
+    if(type === "functions"){
+      color = "#ec4899";
+      symbol = "ƒ";
+    }
+
+    if(type === "analysis"){
+      color = "#f97316";
+      symbol = "∑";
+    }
+
+    if(type === "bonus"){
+      color = "#10b981";
+      symbol = "⚡";
+    }
+
+    if(type === "star"){
+      color = "#facc15";
+      symbol = "★";
+    }
+
+    ctx.beginPath();
+
+    ctx.arc(
+      p.x,
+      p.y,
+      35,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    ctx.strokeStyle =
+      "rgba(255,255,255,.8)";
+
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 28px Cinzel";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(
+      symbol,
+      p.x,
+      p.y + 1
+    );
+
+    ctx.fillStyle =
+      "rgba(255,255,255,.65)";
+
+    ctx.font =
+      "11px Inter";
+
+    ctx.fillText(
+      i + 1,
+      p.x,
+      p.y + 50
+    );
+
+  });
+
+  /* PLAYERS */
+
+  players.forEach((player,index)=>{
+
+    const p =
+      getSpacePosition(player.position);
+
+    const offsets = [
+      [-12,-12],
+      [12,-12],
+      [-12,12],
+      [12,12]
+    ];
+
+    const offset =
+      offsets[index];
+
+    const x =
+      p.x + offset[0];
+
+    const y =
+      p.y + offset[1];
+
+    ctx.beginPath();
+
+    ctx.arc(
+      x,
+      y,
+      14,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fillStyle =
+      player.color;
+
+    ctx.fill();
+
+    ctx.strokeStyle =
+      "#fff";
+
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+
+    ctx.font =
+      "bold 10px Inter";
+
+    ctx.fillText(
+      index + 1,
+      x,
+      y + 1
+    );
+
+  });
+
+}
+
+
+/* ============================================================
+   DICE
+   ============================================================ */
+
+document
+  .getElementById("rollBtn")
+  .addEventListener("click", async () => {
+
+    if(!gameRunning) return;
+
+    const player =
+      players[currentPlayer];
+
+    if(!player.human) return;
+
+    await takeTurn();
+
+  });
+
+
+async function takeTurn() {
+
+  if(isRolling || !gameRunning) return;
+
+  isRolling = true;
+
+  const rollBtn =
+    document.getElementById("rollBtn");
+
+  rollBtn.disabled = true;
+
+  const dice =
+    document.getElementById("dice");
+
+  dice.classList.add("rolling");
+
+  document
+    .getElementById("statusText")
+    .textContent =
+      `${players[currentPlayer].name} está rolando o dado...`;
+
+  sound("dice");
+
+  await sleep(1200);
+
+  const roll =
+    Math.floor(Math.random()*6)+1;
+
+  dice.classList.remove("rolling");
+
+  dice.style.transform =
+    `rotateX(${roll*55}deg)
+     rotateY(${roll*77}deg)
+     rotateZ(${roll*40}deg)`;
+
+  document
+    .getElementById("diceValue")
+    .textContent = roll;
+
+  sound("dice");
+
+  await movePlayer(
+    players[currentPlayer],
+    roll
+  );
+
+  await resolveSpace(
+    players[currentPlayer]
+  );
+
+  isRolling = false;
+
+  if(!gameRunning) return;
+
+  await checkWinner();
+
+  if(!gameRunning) return;
+
+  nextTurn();
+
+  rollBtn.disabled = false;
+
+}
+
+
+/* ============================================================
+   MOVEMENT
+   ============================================================ */
+
+async function movePlayer(
+  player,
+  steps
+) {
+
+  for(let i=0;i<steps;i++){
+
+    player.position =
+      (player.position+1)
+      % spaces.length;
+
+    drawBoard();
+
+    sound("jump");
+
+    await sleep(280);
+
+  }
+
+}
+
+
+/* ============================================================
+   SPACE RESOLUTION
+   ============================================================ */
+
+async function resolveSpace(player) {
+
+  const type =
+    spaces[player.position];
+
+  if(type === "bonus"){
+
+    player.score += 50;
+
+    updateHUD();
+    drawBoard();
+
+    toast(
+      `${player.name} encontrou uma Runa de Energia: +50 pontos!`,
+      "fa-bolt"
+    );
+
+    sound("correct");
+
+    await sleep(1300);
+
+    return;
+  }
+
+  if(type === "star"){
+
+    player.stars++;
+
+    updateHUD();
+    drawBoard();
+
+    toast(
+      `${player.name} conquistou uma Estrela do Saber!`,
+      "fa-star"
+    );
+
+    sound("star");
+
+    await sleep(1500);
+
+    return;
+  }
+
+  if(type === "start"){
+    toast(
+      "Você retornou ao Portal Inicial.",
+      "fa-chess-rook"
+    );
+    return;
+  }
+
+  await askQuestion(player,type);
+
+}
+
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+
+function getQuestion(type) {
+
+  let filtered =
+    questions.filter(q => {
+
+      if(type === "algebra")
+        return q.category === "Álgebra"
+          || q.category === "Equações"
+          || q.category === "Operações";
+
+      if(type === "geometry")
+        return q.category === "Geometria";
+
+      if(type === "functions")
+        return q.category === "Funções"
+          || q.category === "Potência"
+          || q.category === "Potenciação";
+
+      if(type === "analysis")
+        return q.category === "Lógica"
+          || q.category === "Análise"
+          || q.category === "Sequência"
+          || q.category === "Raciocínio"
+          || q.category === "Probabilidade";
+
+      return true;
+
+    });
+
+  if(filtered.length === 0)
+    filtered = questions;
+
+  return filtered[
+    Math.floor(
+      Math.random()*filtered.length
+    )
+  ];
+
+}
+
+
+function askQuestion(player,type) {
+
+  return new Promise(resolve => {
+
+    const question =
+      getQuestion(type);
+
+    if(!player.human){
+
+      document
+        .getElementById("statusText")
+        .textContent =
+          `${player.name} está resolvendo um desafio...`;
+
+      setTimeout(()=>{
+
+        const skill =
+          .55 + Math.random()*.3;
+
+        const correct =
+          Math.random() < skill;
+
+        if(correct){
+
+          player.score += 100;
+
+          toast(
+            `${player.name} acertou! +100 Conhecimento`,
+            "fa-check"
+          );
+
+          sound("correct");
+
+        } else {
+
+          toast(
+            `${player.name} errou o desafio.`,
+            "fa-xmark"
+          );
+
+          sound("wrong");
+
+        }
+
+        updateHUD();
+        drawBoard();
+
+        setTimeout(resolve,1000);
+
+      }, 1400);
+
+      return;
+    }
+
+    document
+      .getElementById("quizModal")
+      .classList.remove("hidden-modal");
+
+    document
+      .getElementById("quizModal")
+      .classList.add("flex");
+
+    document
+      .getElementById("questionCategory")
+      .textContent =
+        question.category;
+
+    document
+      .getElementById("questionText")
+      .textContent =
+        question.q;
+
+    const answers =
+      document.getElementById("answers");
+
+    answers.innerHTML = "";
+
+    question.answers.forEach(
+      (answer,index)=>{
+
+        const btn =
+          document.createElement("button");
+
+        btn.className =
+          "answer-btn text-left p-4 rounded-xl border border-amber-900/20 bg-white/40 hover:bg-white/70 font-semibold";
+
+        btn.innerHTML = `
+          <span class="inline-flex w-7 h-7 rounded-full bg-amber-700 text-white items-center justify-center mr-2 text-xs">
+            ${String.fromCharCode(65+index)}
+          </span>
+          ${answer}
+        `;
+
+        btn.onclick = () => {
+
+          finishQuestion(
+            index === question.correct
+          );
+
+        };
+
+        answers.appendChild(btn);
+
+      }
+    );
+
+    let time = 50;
+
+    document
+      .getElementById("timerText")
+      .textContent = time;
+
+    document
+      .getElementById("timerBar")
+      .style.width = "100%";
+
+    clearInterval(timerInterval);
+
+    timerInterval =
+      setInterval(()=>{
+
+        time--;
+
+        document
+          .getElementById("timerText")
+          .textContent = time;
+
+        document
+          .getElementById("timerBar")
+          .style.width =
+            `${time/50*100}%`;
+
+        if(time <= 0){
+
+          clearInterval(timerInterval);
+
+          finishQuestion(false,true);
+
+        }
+
+      },1000);
+
+
+    function finishQuestion(
+      correct,
+      timeout=false
+    ){
+
+      clearInterval(timerInterval);
+
+      const modal =
+        document.getElementById("quizModal");
+
+      modal.classList.add("hidden-modal");
+      modal.classList.remove("flex");
+
+      if(correct){
+
+        player.score += 100;
+
+        toast(
+          "Resposta correta! +100 Pontos de Conhecimento!",
+          "fa-wand-magic-sparkles"
+        );
+
+        sound("correct");
+
+      } else {
+
+        toast(
+          timeout
+            ? "O tempo acabou!"
+            : "Resposta incorreta. Continue treinando!",
+          "fa-skull"
+        );
+
+        sound("wrong");
+
+      }
+
+      updateHUD();
+      drawBoard();
+
+      setTimeout(resolve,600);
+
+    }
+
+  });
+
+}
+
+
+/* ============================================================
+   TURN MANAGEMENT
+   ============================================================ */
+
+function nextTurn() {
+
+  currentPlayer++;
+
+  if(currentPlayer >= players.length){
+
+    currentPlayer = 0;
+    round++;
+
+    if(round % 3 === 0){
+
+      updateHUD();
+
+      setTimeout(
+        startMinigame,
+        600
+      );
+
+      return;
+
+    }
+
+  }
+
+  updateHUD();
+
+  document
+    .getElementById("statusText")
+    .textContent =
+      `${players[currentPlayer].name}, é sua vez!`;
+
+  if(!players[currentPlayer].human){
+
+    setTimeout(
+      takeTurn,
+      1200
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   MINIGAMES
+   ============================================================ */
+
+let keys = {};
+
+window.addEventListener("keydown",e=>{
+  keys[e.key.toLowerCase()] = true;
+});
+
+window.addEventListener("keyup",e=>{
+  keys[e.key.toLowerCase()] = false;
+});
+
+
+async function startMinigame() {
+
+  const games = [
+
+    {
+      title:"Fuga das Funções",
+      instructions:"Desvie das ondas e picos matemáticos!",
+      type:"wave"
+    },
+
+    {
+      title:"Chuva de Símbolos",
+      instructions:"Mude de faixa e evite os símbolos caindo!",
+      type:"rain"
+    },
+
+    {
+      title:"Ponte dos Números",
+      instructions:"Atravesse a ponte sem cair no vazio!",
+      type:"bridge"
+    }
+
+  ];
+
+  const game =
+    games[
+      Math.floor(Math.random()*games.length)
+    ];
+
+  document
+    .getElementById("miniTitle")
+    .textContent =
+      game.title;
+
+  document
+    .getElementById("miniInstructions")
+    .textContent =
+      game.instructions;
+
+  document
+    .getElementById("miniModal")
+    .classList.remove("hidden-modal");
+
+  document
+    .getElementById("miniModal")
+    .classList.add("flex");
+
+  let time = 10;
+
+  document
+    .getElementById("miniTimer")
+    .textContent = time;
+
+  const timer =
+    setInterval(()=>{
+
+      time--;
+
+      document
+        .getElementById("miniTimer")
+        .textContent = time;
+
+      if(time <= 0){
+
+        clearInterval(timer);
+
+        endMinigame();
+
+      }
+
+    },1000);
+
+  if(game.type === "wave")
+    miniWave();
+
+  if(game.type === "rain")
+    miniRain();
+
+  if(game.type === "bridge")
+    miniBridge();
+
+}
+
+
+function endMinigame() {
+
+  cancelAnimationFrame(miniInterval);
+
+  document
+    .getElementById("miniModal")
+    .classList.add("hidden-modal");
+
+  document
+    .getElementById("miniModal")
+    .classList.remove("flex");
+
+  players.forEach(p=>{
+    p.score += 150;
+  });
+
+  updateHUD();
+  drawBoard();
+
+  toast(
+    "Minigame concluído! Todos recebem +150 Pontos!",
+    "fa-gamepad"
+  );
+
+  checkWinner();
+
+  if(gameRunning){
+
+    setTimeout(()=>{
+
+      currentPlayer = 0;
+
+      updateHUD();
+
+      document
+        .getElementById("statusText")
+        .textContent =
+          "Nova rodada! Sua vez.";
+
+    },1000);
+
+  }
+
+}
+
+
+/* ---------------- WAVE ---------------- */
+
+function miniWave(){
+
+  let playerX = 120;
+  let t = 0;
+
+  function frame(){
+
+    mctx.clearRect(
+      0,
+      0,
+      miniCanvas.width,
+      miniCanvas.height
+    );
+
+    const bg =
+      mctx.createLinearGradient(
+        0,0,
+        0,miniCanvas.height
+      );
+
+    bg.addColorStop(0,"#07111c");
+    bg.addColorStop(1,"#182b3b");
+
+    mctx.fillStyle = bg;
+
+    mctx.fillRect(
+      0,0,
+      miniCanvas.width,
+      miniCanvas.height
+    );
+
+    if(keys["arrowleft"] || keys["a"])
+      playerX -= 7;
+
+    if(keys["arrowright"] || keys["d"])
+      playerX += 7;
+
+    playerX =
+      Math.max(
+        20,
+        Math.min(
+          miniCanvas.width-20,
+          playerX
+        )
+      );
+
+    mctx.strokeStyle =
+      "#facc15";
+
+    mctx.lineWidth = 7;
+
+    mctx.beginPath();
+
+    for(let x=0;
+      x<miniCanvas.width;
+      x+=5){
+
+      const y =
+        230 +
+        Math.sin(
+          (x+t)/45
+        )*70;
+
+      if(x===0)
+        mctx.moveTo(x,y);
+      else
+        mctx.lineTo(x,y);
+
+    }
+
+    mctx.stroke();
+
+    mctx.fillStyle =
+      "#3b82f6";
+
+    mctx.beginPath();
+
+    mctx.arc(
+      playerX,
+      340,
+      20,
+      0,
+      Math.PI*2
+    );
+
+    mctx.fill();
+
+    mctx.fillStyle =
+      "#fff";
+
+    mctx.font =
+      "bold 18px Inter";
+
+    mctx.textAlign =
+      "center";
+
+    mctx.fillText(
+      "ƒ",
+      playerX,
+      346
+    );
+
+    t += 6;
+
+    miniInterval =
+      requestAnimationFrame(frame);
+
+  }
+
+  frame();
+
+}
+
+
+/* ---------------- RAIN ---------------- */
+
+function miniRain(){
+
+  let lane = 1;
+  let drops = [];
+
+  for(let i=0;i<8;i++){
+
+    drops.push({
+
+      lane:
+        Math.floor(Math.random()*3),
+
+      y:
+        Math.random()*400
+
+    });
+
+  }
+
+  function frame(){
+
+    mctx.fillStyle =
+      "#09121f";
+
+    mctx.fillRect(
+      0,0,
+      miniCanvas.width,
+      miniCanvas.height
+    );
+
+    if(keys["arrowleft"] || keys["a"])
+      lane = Math.max(0,lane-1);
+
+    if(keys["arrowright"] || keys["d"])
+      lane = Math.min(2,lane+1);
+
+    for(let i=1;i<3;i++){
+
+      mctx.strokeStyle =
+        "rgba(255,255,255,.15)";
+
+      mctx.lineWidth = 3;
+
+      mctx.beginPath();
+
+      mctx.moveTo(
+        i*miniCanvas.width/3,
+        0
+      );
+
+      mctx.lineTo(
+        i*miniCanvas.width/3,
+        miniCanvas.height
+      );
+
+      mctx.stroke();
+
+    }
+
+    drops.forEach(drop=>{
+
+      drop.y +=
+        4 + Math.random()*3;
+
+      if(drop.y > miniCanvas.height){
+
+        drop.y = -20;
+
+        drop.lane =
+          Math.floor(Math.random()*3);
+
+      }
+
+      const x =
+        drop.lane*
+        miniCanvas.width/3
+        +
+        miniCanvas.width/6;
+
+      mctx.fillStyle =
+        "#ef4444";
+
+      mctx.font =
+        "bold 32px Inter";
+
+      mctx.textAlign =
+        "center";
+
+      mctx.fillText(
+        ["×","÷","√","π"][
+          Math.floor(Math.random()*4)
+        ],
+        x,
+        drop.y
+      );
+
+    });
+
+    const px =
+      lane*
+      miniCanvas.width/3
+      +
+      miniCanvas.width/6;
+
+    mctx.fillStyle =
+      "#10b981";
+
+    mctx.beginPath();
+
+    mctx.arc(
+      px,
+      360,
+      23,
+      0,
+      Math.PI*2
+    );
+
+    mctx.fill();
+
+    mctx.fillStyle =
+      "#fff";
+
+    mctx.font =
+      "bold 18px Inter";
+
+    mctx.fillText(
+      "✓",
+      px,
+      367
+    );
+
+    miniInterval =
+      requestAnimationFrame(frame);
+
+  }
+
+  frame();
+
+}
+
+
+/* ---------------- BRIDGE ---------------- */
+
+function miniBridge(){
+
+  let x = 80;
+
+  function frame(){
+
+    mctx.fillStyle =
+      "#08111d";
+
+    mctx.fillRect(
+      0,0,
+      miniCanvas.width,
+      miniCanvas.height
+    );
+
+    if(keys["arrowleft"] || keys["a"])
+      x -= 5;
+
+    if(keys["arrowright"] || keys["d"])
+      x += 5;
+
+    x =
+      Math.max(
+        20,
+        Math.min(
+          miniCanvas.width-20,
+          x
+        )
+      );
+
+    for(let i=0;i<8;i++){
+
+      const px =
+        50 + i*100;
+
+      const py =
+        270 +
+        Math.sin(i*2)*30;
+
+      mctx.fillStyle =
+        i%2
+          ? "#8b5a2b"
+          : "#b8894d";
+
+      mctx.fillRect(
+        px,
+        py,
+        70,
+        20
+      );
+
+      mctx.fillStyle =
+        "#facc15";
+
+      mctx.font =
+        "bold 15px Inter";
+
+      mctx.textAlign =
+        "center";
+
+      mctx.fillText(
+        i+1,
+        px+35,
+        py+15
+      );
+
+    }
+
+    mctx.fillStyle =
+      "#06b6d4";
+
+    mctx.beginPath();
+
+    mctx.arc(
+      x,
+      240,
+      22,
+      0,
+      Math.PI*2
+    );
+
+    mctx.fill();
+
+    mctx.fillStyle =
+      "#fff";
+
+    mctx.font =
+      "bold 16px Inter";
+
+    mctx.fillText(
+      "x",
+      x,
+      246
+    );
+
+    miniInterval =
+      requestAnimationFrame(frame);
+
+  }
+
+  frame();
+
+}
+
+
+/* ============================================================
+   WIN CONDITION
+   ============================================================ */
+
+async function checkWinner() {
+
+  const winner =
+    players.find(p =>
+      p.stars >= 3 ||
+      p.score >= 600
+    );
+
+  if(!winner) return;
+
+  gameRunning = false;
+
+  await sleep(500);
+
+  document
+    .getElementById("winnerName")
+    .textContent =
+      winner.name;
+
+  const stats =
+    document
+      .getElementById("finalStats");
+
+  stats.innerHTML = "";
+
+  [...players]
+    .sort((a,b)=>
+      (b.stars-a.stars) ||
+      (b.score-a.score)
+    )
+    .forEach((p,index)=>{
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "rounded-2xl bg-white/5 border border-white/10 p-4";
+
+      card.innerHTML = `
+
+        <div class="text-sm text-slate-400">
+          ${index+1}º Lugar
+        </div>
+
+        <div class="font-bold mt-1">
+          ${p.name}
+        </div>
+
+        <div class="text-yellow-300 text-sm mt-2">
+          ★ ${p.stars}
+          &nbsp;
+          ✦ ${p.score}
+        </div>
+
+      `;
+
+      stats.appendChild(card);
+
+    });
+
+  document
+    .getElementById("winModal")
+    .classList.remove("hidden-modal");
+
+  document
+    .getElementById("winModal")
+    .classList.add("flex");
+
+  sound("star");
+
+}
+
+
+/* ============================================================
+   SOUND
+   ============================================================ */
+
+document
+  .getElementById("soundBtn")
+  .addEventListener("click",()=>{
+
+    isMuted = !isMuted;
+
+    document
+      .getElementById("soundBtn")
+      .innerHTML =
+        isMuted
+          ? '<i class="fa-solid fa-volume-xmark"></i>'
+          : '<i class="fa-solid fa-volume-high"></i>';
+
+    toast(
+      isMuted
+        ? "Sons mágicos desativados."
+        : "Sons mágicos ativados.",
+      isMuted
+        ? "fa-volume-xmark"
+        : "fa-volume-high"
+    );
+
+  });
+
+
+/* ============================================================
+   MULTIPLAYER / PEERJS STRUCTURE
+   ============================================================ */
+
+function generateRoomCode(){
+
+  return Math.random()
+    .toString(36)
+    .substring(2,8)
+    .toUpperCase();
+
+}
+
+
+document
+  .getElementById("createRoomBtn")
+  .addEventListener("click",()=>{
+
+    roomId =
+      generateRoomCode();
+
+    document
+      .getElementById("roomCode")
+      .textContent =
+        roomId;
+
+    toast(
+      `Sala criada: ${roomId}`,
+      "fa-door-open"
+    );
+
+    try {
+
+      peer =
+        new Peer(
+          "math-party-" +
+          roomId.toLowerCase()
+        );
+
+      peer.on("open",id=>{
+
+        console.log(
+          "Peer room ready:",
+          id
+        );
+
+      });
+
+    } catch(e) {
+
+      console.log(
+        "PeerJS indisponível",
+        e
+      );
+
+    }
+
+  });
+
+
+document
+  .getElementById("joinRoomBtn")
+  .addEventListener("click",()=>{
+
+    const code =
+      prompt(
+        "Digite o código da sala:"
+      );
+
+    if(!code) return;
+
+    document
+      .getElementById("roomCode")
+      .textContent =
+        code.toUpperCase();
+
+    toast(
+      `Tentando conectar à sala ${code.toUpperCase()}...`,
+      "fa-link"
+    );
+
+  });
+
+
+document
+  .getElementById("copyRoomBtn")
+  .addEventListener("click",async()=>{
+
+    const code =
+      document
+        .getElementById("roomCode")
+        .textContent;
+
+    try {
+
+      await navigator.clipboard.writeText(
+        location.href +
+        "?room=" +
+        code
+      );
+
+      toast(
+        "Link da sala copiado!",
+        "fa-copy"
+      );
+
+    } catch(e) {
+
+      toast(
+        `Código da sala: ${code}`,
+        "fa-key"
+      );
+
+    }
+
+  });
+
+
+/* ============================================================
+   INITIAL DRAW
+   ============================================================ */
+
+drawBoard();
+
+</script>
+
+</body>
+</html>
