@@ -1,0 +1,3378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Math Party: High School Edition</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap"
+rel="stylesheet">
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:"Inter",sans-serif;
+  color:white;
+
+  background:
+  radial-gradient(circle at 15% 10%,#263a69 0%,transparent 30%),
+  radial-gradient(circle at 90% 80%,#164b43 0%,transparent 28%),
+  #08101f;
+}
+
+.cinzel{
+  font-family:"Cinzel",serif;
+}
+
+.glass{
+  background:rgba(15,23,43,.72);
+  border:1px solid rgba(255,255,255,.13);
+  backdrop-filter:blur(14px);
+  box-shadow:0 18px 50px rgba(0,0,0,.4);
+}
+
+.parchment{
+  background:
+  linear-gradient(135deg,#f8e9bf,#c99d5b);
+
+  color:#21150b;
+
+  border:6px solid #71451f;
+
+  box-shadow:
+  inset 0 0 25px rgba(90,53,16,.35),
+  0 20px 50px rgba(0,0,0,.5);
+}
+
+.card.active{
+  outline:3px solid #facc15;
+  transform:translateY(-3px);
+}
+
+.board{
+  width:100%;
+  aspect-ratio:16/10;
+
+  background:
+  radial-gradient(circle at center,#355a45,#13251d);
+
+  border:8px solid #75491f;
+  border-radius:22px;
+
+  position:relative;
+  overflow:hidden;
+}
+
+.space{
+  position:absolute;
+
+  width:62px;
+  height:62px;
+
+  border-radius:50%;
+
+  display:grid;
+  place-items:center;
+
+  font-size:25px;
+  font-weight:900;
+
+  color:white;
+
+  border:3px solid rgba(255,255,255,.75);
+
+  box-shadow:
+  0 6px 15px rgba(0,0,0,.45);
+
+  transform:translate(-50%,-50%);
+}
+
+.pawn{
+  position:absolute;
+
+  width:26px;
+  height:26px;
+
+  border-radius:50%;
+
+  border:3px solid white;
+
+  display:grid;
+  place-items:center;
+
+  font-size:10px;
+  font-weight:bold;
+
+  box-shadow:0 3px 10px rgba(0,0,0,.8);
+
+  transition:
+  left .3s linear,
+  top .3s linear;
+
+  z-index:10;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+
+  z-index:100;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:16px;
+
+  background:rgba(0,0,0,.75);
+
+  backdrop-filter:blur(7px);
+}
+
+.hidden{
+  display:none !important;
+}
+
+.toast{
+  animation:toast .25s ease;
+}
+
+@keyframes toast{
+
+  from{
+    opacity:0;
+    transform:translateY(-15px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+}
+
+.answer{
+  transition:.15s ease;
+}
+
+.answer:hover{
+  transform:translateX(5px);
+}
+
+button{
+  transition:.2s ease;
+}
+
+button:hover:not(:disabled){
+  filter:brightness(1.08);
+}
+
+button:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+@media(max-width:640px){
+
+  .space{
+    width:45px;
+    height:45px;
+    font-size:18px;
+  }
+
+  .pawn{
+    width:20px;
+    height:20px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+
+<header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/10">
+
+<div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
+
+<div class="flex gap-3 items-center">
+
+<div class="w-11 h-11 rounded-xl bg-yellow-400 text-slate-950 grid place-items-center">
+
+<i class="fa-solid fa-dice-d20 text-xl"></i>
+
+</div>
+
+<div>
+
+<h1 class="cinzel font-bold text-lg md:text-2xl">
+Math Party
+</h1>
+
+<p class="text-xs text-slate-400">
+High School Edition
+</p>
+
+</div>
+
+</div>
+
+<div class="flex gap-2 items-center">
+
+<div class="glass px-3 py-2 rounded-xl text-xs">
+
+<i class="fa-solid fa-key text-yellow-300"></i>
+
+<b id="roomCode">
+LOCAL
+</b>
+
+</div>
+
+<button id="copyBtn"
+class="glass px-3 py-2 rounded-xl">
+
+<i class="fa-solid fa-copy"></i>
+
+</button>
+
+<button id="soundBtn"
+class="glass px-3 py-2 rounded-xl">
+
+<i class="fa-solid fa-volume-high"></i>
+
+</button>
+
+</div>
+
+</div>
+
+</header>
+
+
+<!-- TOAST -->
+
+<div id="toasts"
+class="fixed top-20 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-md space-y-2">
+</div>
+
+
+<main class="max-w-7xl mx-auto p-4">
+
+
+<!-- ================= MENU ================= -->
+
+<section id="menu"
+class="min-h-[80vh] flex items-center justify-center">
+
+<div class="glass w-full max-w-5xl rounded-3xl p-6 md:p-10">
+
+<div class="text-center mb-8">
+
+<div class="text-6xl text-yellow-300">
+
+<i class="fa-solid fa-crown"></i>
+
+</div>
+
+<h2 class="cinzel text-3xl md:text-5xl font-bold mt-3">
+
+Math Party
+
+</h2>
+
+<p class="text-slate-300 mt-3">
+
+Matemática, lógica, estratégia e magia em um tabuleiro multiplayer.
+
+</p>
+
+</div>
+
+
+<div class="grid md:grid-cols-3 gap-5">
+
+
+<button id="soloBtn"
+class="p-6 rounded-2xl bg-yellow-400 text-slate-950 font-bold">
+
+<i class="fa-solid fa-robot text-3xl"></i>
+
+<div class="mt-3 cinzel text-xl">
+Modo Solo
+</div>
+
+<small>
+Você contra 3 bots
+</small>
+
+</button>
+
+
+<button id="hostBtn"
+class="p-6 rounded-2xl bg-cyan-500 text-slate-950 font-bold">
+
+<i class="fa-solid fa-door-open text-3xl"></i>
+
+<div class="mt-3 cinzel text-xl">
+Criar Sala
+</div>
+
+<small>
+Hospede uma partida
+</small>
+
+</button>
+
+
+<button id="joinBtn"
+class="p-6 rounded-2xl bg-violet-500 text-white font-bold">
+
+<i class="fa-solid fa-right-to-bracket text-3xl"></i>
+
+<div class="mt-3 cinzel text-xl">
+Entrar na Sala
+</div>
+
+<small>
+Use um código ou link
+</small>
+
+</button>
+
+
+</div>
+
+
+<div class="mt-8">
+
+<h3 class="cinzel text-center text-xl mb-4">
+
+Escolha sua Classe
+
+</h3>
+
+<div id="classes"
+class="grid grid-cols-2 md:grid-cols-4 gap-3">
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ================= LOBBY ================= -->
+
+<section id="lobby"
+class="hidden max-w-3xl mx-auto">
+
+<div class="glass rounded-3xl p-6 md:p-8">
+
+<div class="text-center">
+
+<i class="fa-solid fa-users text-4xl text-cyan-300"></i>
+
+<h2 class="cinzel text-3xl mt-2">
+
+Sala dos Aventureiros
+
+</h2>
+
+<p id="lobbyInfo"
+class="text-slate-400 mt-2">
+</p>
+
+</div>
+
+
+<div id="lobbyPlayers"
+class="grid sm:grid-cols-2 gap-3 mt-7">
+</div>
+
+
+<div class="mt-6 grid sm:grid-cols-2 gap-3">
+
+<button id="readyBtn"
+class="rounded-xl bg-emerald-500 text-slate-950 py-3 font-bold">
+
+Estou Pronto
+
+</button>
+
+
+<button id="startBtn"
+class="hidden rounded-xl bg-yellow-400 text-slate-950 py-3 font-bold">
+
+Iniciar Partida
+
+</button>
+
+</div>
+
+
+<p class="text-center text-xs text-slate-400 mt-4">
+
+Máximo de 4 jogadores.
+O anfitrião controla o início e o estado da partida.
+
+</p>
+
+</div>
+
+</section>
+
+
+<!-- ================= GAME ================= -->
+
+<section id="game"
+class="hidden">
+
+
+<div class="glass rounded-2xl p-4 mb-4 flex justify-between items-center">
+
+<div>
+
+<small class="text-slate-400">
+RODADA
+</small>
+
+<div id="round"
+class="text-2xl font-bold">
+1
+</div>
+
+</div>
+
+
+<div class="text-center">
+
+<small class="text-slate-400">
+VEZ DE
+</small>
+
+<div id="turn"
+class="cinzel text-xl text-yellow-300">
+
+-
+
+</div>
+
+</div>
+
+
+<div class="text-right">
+
+<small class="text-slate-400">
+OBJETIVO
+</small>
+
+<div>
+
+★ 3 ou ✦ 600
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- HUD -->
+
+<div id="hud"
+class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+</div>
+
+
+<!-- BOARD -->
+
+<div id="boardWrap"
+class="board">
+</div>
+
+
+<!-- CONTROLS -->
+
+<div class="grid md:grid-cols-3 gap-4 mt-5">
+
+
+<div class="glass rounded-2xl p-4 text-center">
+
+<div class="text-xs text-slate-400">
+
+DADO ARCANO
+
+</div>
+
+<div id="die"
+class="text-6xl font-black text-yellow-300">
+
+?
+
+</div>
+
+</div>
+
+
+<div class="glass rounded-2xl p-4 text-center">
+
+<button id="rollBtn"
+class="bg-yellow-400 text-slate-950 rounded-2xl px-8 py-4 font-black text-lg">
+
+<i class="fa-solid fa-dice mr-2"></i>
+
+ROLAR O DADO
+
+</button>
+
+<p id="status"
+class="text-sm text-slate-300 mt-3">
+
+Aguardando partida...
+
+</p>
+
+</div>
+
+
+<div class="glass rounded-2xl p-4 text-sm">
+
+<b class="cinzel">
+
+Runas
+
+</b>
+
+<div class="grid grid-cols-2 gap-1 mt-2 text-slate-300">
+
+🔺 Álgebra
+
+📐 Geometria
+
+ƒ Funções
+
+∑ Lógica
+
+⚡ +50
+
+★ +1 Estrela
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+
+<!-- ================= QUIZ ================= -->
+
+<div id="quizModal"
+class="modal hidden">
+
+<div class="parchment w-full max-w-2xl rounded-3xl p-6 relative">
+
+<div class="absolute right-6 top-5 font-bold">
+
+⏳
+<span id="qTime">
+50
+</span>s
+
+</div>
+
+
+<div class="h-3 bg-black/15 rounded-full overflow-hidden mb-5">
+
+<div id="qBar"
+class="h-full bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-500"
+style="width:100%">
+</div>
+
+</div>
+
+
+<div id="qCat"
+class="text-xs font-bold text-amber-800 uppercase">
+</div>
+
+
+<h2 id="qText"
+class="font-bold text-xl md:text-2xl mt-3 mb-5">
+</h2>
+
+
+<div id="answers"
+class="grid gap-3">
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ================= MINIGAME ================= -->
+
+<div id="miniModal"
+class="modal hidden">
+
+<div class="glass max-w-3xl w-full rounded-3xl p-6 text-center">
+
+<h2 id="miniTitle"
+class="cinzel text-3xl text-yellow-300">
+</h2>
+
+<p id="miniText"
+class="text-slate-300 my-2">
+</p>
+
+<canvas id="miniCanvas"
+width="760"
+height="350"
+class="w-full rounded-xl border border-yellow-300/30 bg-slate-950">
+</canvas>
+
+<p class="mt-3">
+
+Tempo:
+<b id="miniTime">
+10
+</b>s
+
+· Use ← → ou A/D
+
+</p>
+
+</div>
+
+</div>
+
+
+<!-- ================= WIN ================= -->
+
+<div id="winModal"
+class="modal hidden">
+
+<div class="glass max-w-2xl w-full rounded-3xl p-8 text-center">
+
+<i class="fa-solid fa-crown text-6xl text-yellow-300"></i>
+
+<p class="text-yellow-300 text-xs tracking-[.3em] mt-4">
+
+CAMPEÃO DO REINO
+
+</p>
+
+<h2 id="winner"
+class="cinzel text-4xl mt-2">
+</h2>
+
+<div id="ranking"
+class="grid grid-cols-2 gap-3 mt-7">
+</div>
+
+<button onclick="location.href=location.pathname"
+class="mt-7 bg-yellow-400 text-slate-950 font-bold px-7 py-3 rounded-xl">
+
+Jogar Novamente
+
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CONFIGURAÇÃO
+========================================================= */
+
+const CLASSES = {
+
+Paladino:{
+color:"#ef4444",
+icon:"fa-shield-halved"
+},
+
+Mago:{
+color:"#3b82f6",
+icon:"fa-hat-wizard"
+},
+
+Patrulheiro:{
+color:"#10b981",
+icon:"fa-bow-arrow"
+},
+
+Alquimista:{
+color:"#06b6d4",
+icon:"fa-flask"
+}
+
+};
+
+
+const spaces = [
+
+"start",
+"algebra",
+"bonus",
+"geometry",
+"functions",
+
+"analysis",
+"star",
+"algebra",
+"bonus",
+"geometry",
+
+"functions",
+"analysis",
+"star",
+"bonus",
+"algebra",
+
+"geometry",
+"functions",
+"analysis",
+"bonus",
+"star"
+
+];
+
+
+/* =========================================================
+   QUESTÕES
+========================================================= */
+
+const qs = [
+
+["Álgebra","Resolva: 3x + 5 = 20",["3","5","7","10"],1],
+
+["Álgebra","Quanto vale x em 2x − 8 = 12?",["2","5","8","10"],3],
+
+["Operações","Quanto é 15 × 8?",["100","110","120","130"],2],
+
+["Frações","Quanto é 1/2 + 1/4?",["2/6","3/4","1/8","2/4"],1],
+
+["Porcentagem","20% de 250 é:",["25","40","50","60"],2],
+
+["Geometria","Um quadrado de lado 8 cm possui área:",["16","32","64","80"],2],
+
+["Geometria","Triângulo de base 10 e altura 6. Área?",["16","30","60","80"],1],
+
+["Funções","f(x)=2x+1. Quanto é f(3)?",["5","6","7","8"],2],
+
+["Lógica","Complete: 2, 4, 8, 16, __",["20","24","30","32"],3],
+
+["Proporção","3 livros custam R$45. Quanto custam 5?",["60","70","75","80"],2],
+
+["Potenciação","Quanto é 2⁵?",["10","16","25","32"],3],
+
+["Radiciação","√144 é:",["10","11","12","14"],2],
+
+["Equações","x² = 49. Considerando x positivo:",["5","6","7","8"],2],
+
+["Geometria","Perímetro de um retângulo 5 por 8:",["13","26","40","64"],1],
+
+["Porcentagem","Produto de R$200 com 15% de desconto:",["170","175","180","185"],0],
+
+["Lógica","Sequência: 1,1,2,3,5,8,__?",["11","12","13","15"],2],
+
+["Funções","f(x)=x². Quanto é f(-4)?",["-16","-8","8","16"],3],
+
+["Média","Média de 6, 8 e 10:",["7","8","9","10"],1],
+
+["Probabilidade","Probabilidade de cara em moeda justa:",["25%","50%","75%","100%"],1],
+
+["Frações","2/3 de 30 é:",["10","15","20","25"],2],
+
+["Regra de Três","4 máquinas produzem 100 peças. 8 produzem:",["150","180","200","400"],2],
+
+["Geometria","Soma dos ângulos internos de um triângulo:",["90°","180°","270°","360°"],1],
+
+["Geometria","Círculo de raio 5, usando π≈3,14. Área:",["31,4","62,8","78,5"],2],
+
+["Equações","4x = 36",["6","8","9","12"],2],
+
+["Operações","144 ÷ 12 =",["10","11","12","13"],2],
+
+["Porcentagem","50% corresponde à fração:",["1/4","1/2","2/3","3/4"],1],
+
+["Lógica","Se hoje é terça-feira, daqui 10 dias será:",["Quinta","Sexta","Sábado","Domingo"],1],
+
+["Potência","10³ é:",["30","100","300","1000"],3],
+
+["Funções","y=-2x. Se x=4:",["-8","-4","4","8"],0],
+
+["Frações","Qual é equivalente a 3/6?",["1/3","1/2","2/3","3/2"],1],
+
+["Lógica","Todo número par é divisível por:",["2","3","5","10"],0],
+
+["Operações","(12+8)×2 =",["28","32","40","48"],2],
+
+["Equações","x+17=42. x é:",["15","20","25","30"],2],
+
+["Proporção","2/5 da turma são 12 alunos. Total?",["20","25","30","35"],2],
+
+["Geometria","Losango com diagonais 10 e 6. Área:",["16","30","60","80"],1],
+
+["Sequência","3,6,12,24,__:",["36","42","48","50"],2],
+
+["Porcentagem","100 aumentado em 20% resulta:",["110","115","120","125"],2],
+
+["Raciocínio","Qual número é primo?",["21","27","29","33"],2],
+
+["Média","Média de 4,6,8 e 10:",["6","7","8","9"],1],
+
+["Lógica","▲ ● ▲ ● ▲ __",["▲","●","■","◆"],1],
+
+["Análise","Dobrar e dobrar novamente resulta em:",["2 vezes","3 vezes","4 vezes","8 vezes"],2],
+
+["Geometria","Área de retângulo 7×9:",["16","32","63","81"],2],
+
+["Porcentagem","25% de 80:",["15","20","25","30"],1],
+
+["Raciocínio","Qual é o próximo: 5,10,20,40,__?",["50","60","70","80"],3],
+
+["Álgebra","5a+3a−2a =",["5a","6a","8a","10a"],1]
+
+];
+
+
+/* =========================================================
+   VARIÁVEIS
+========================================================= */
+
+let selectedClass = "Paladino";
+
+let peer = null;
+let connections = [];
+
+let host = false;
+let room = null;
+let myId = null;
+
+let ready = false;
+let muted = false;
+
+let state = null;
+let botMode = false;
+
+let qTimer = null;
+
+let miniRAF = null;
+
+
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+function wait(ms){
+
+return new Promise(resolve=>setTimeout(resolve,ms));
+
+}
+
+
+function toast(message,icon="fa-scroll"){
+
+const div=document.createElement("div");
+
+div.className=
+"toast parchment rounded-xl p-3 text-center font-bold shadow-2xl";
+
+div.innerHTML=
+`<i class="fa-solid ${icon} mr-2"></i>${message}`;
+
+toasts.append(div);
+
+setTimeout(()=>div.remove(),3200);
+
+}
+
+
+function sound(type="click"){
+
+if(muted)return;
+
+try{
+
+const AudioCtx=
+window.AudioContext ||
+window.webkitAudioContext;
+
+const audio=new AudioCtx();
+
+const osc=audio.createOscillator();
+
+const gain=audio.createGain();
+
+osc.connect(gain);
+
+gain.connect(audio.destination);
+
+const frequencies={
+
+correct:880,
+wrong:150,
+star:1200,
+dice:220,
+jump:500
+
+};
+
+osc.frequency.value=
+frequencies[type] || 440;
+
+gain.gain.setValueAtTime(
+.09,
+audio.currentTime
+);
+
+gain.gain.exponentialRampToValueAtTime(
+.001,
+audio.currentTime+.18
+);
+
+osc.start();
+
+osc.stop(
+audio.currentTime+.18
+);
+
+}catch(e){}
+
+}
+
+
+function generateRoom(){
+
+return Math.random()
+.toString(36)
+.slice(2,8)
+.toUpperCase();
+
+}
+
+
+function getPeerId(code){
+
+return "math-party-"+
+code.toLowerCase();
+
+}
+
+
+function show(screen){
+
+["menu","lobby","game"]
+.forEach(id=>{
+
+document
+.getElementById(id)
+.classList.toggle(
+"hidden",
+id!==screen
+);
+
+});
+
+}
+
+
+/* =========================================================
+   CLASSES
+========================================================= */
+
+function renderClasses(){
+
+classes.innerHTML=
+Object.entries(CLASSES)
+.map(([name,data])=>`
+
+<button
+data-class="${name}"
+class="classBtn rounded-2xl p-4 border
+${name===selectedClass
+?"border-yellow-300 bg-white/10"
+:"border-white/10"}">
+
+<i class="fa-solid ${data.icon}
+text-3xl"
+style="color:${data.color}">
+</i>
+
+<div class="font-bold mt-2">
+${name}
+</div>
+
+</button>
+
+`)
+.join("");
+
+document
+.querySelectorAll(".classBtn")
+.forEach(btn=>{
+
+btn.onclick=()=>{
+
+selectedClass=
+btn.dataset.class;
+
+renderClasses();
+
+};
+
+});
+
+}
+
+renderClasses();
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+function makePlayer(
+name,
+playerClass,
+id,
+bot=false
+){
+
+return{
+
+id:id,
+
+name:name,
+
+class:playerClass,
+
+color:
+CLASSES[playerClass].color,
+
+pos:0,
+
+score:0,
+
+stars:0,
+
+ready:false,
+
+bot:bot
+
+};
+
+}
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+function createState(){
+
+state={
+
+players:[
+makePlayer(
+"Você",
+selectedClass,
+myId
+)
+],
+
+turn:0,
+
+round:1,
+
+phase:"lobby",
+
+question:null,
+
+mini:null
+
+};
+
+}
+
+
+function broadcast(data){
+
+connections.forEach(connection=>{
+
+if(connection.open){
+
+connection.send(data);
+
+}
+
+});
+
+}
+
+
+function sendState(){
+
+if(!host)return;
+
+broadcast({
+
+type:"state",
+
+state:state
+
+});
+
+render();
+
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+
+if(!state)return;
+
+
+/* LOBBY */
+
+if(state.phase==="lobby"){
+
+show("lobby");
+
+lobbyInfo.textContent=
+
+`Código da sala: ${room}
+${host
+?"• Você é o anfitrião"
+:"• Conectado ao anfitrião"}`;
+
+lobbyPlayers.innerHTML=
+
+state.players.map(player=>`
+
+<div class="glass rounded-2xl p-4
+flex items-center gap-3">
+
+<div
+class="w-11 h-11 rounded-xl grid place-items-center"
+style="background:${player.color}">
+
+<i class="fa-solid
+${CLASSES[player.class].icon}">
+</i>
+
+</div>
+
+<div class="flex-1">
+
+<b>${player.name}</b>
+
+<div class="text-xs text-slate-400">
+
+${player.class}
+
+</div>
+
+</div>
+
+<div>
+
+${player.ready
+?"<span class='text-emerald-300'>✓ Pronto</span>"
+:"<span class='text-yellow-300'>⏳</span>"}
+
+</div>
+
+</div>
+
+`).join("");
+
+
+const empty=
+Math.max(
+0,
+4-state.players.length
+);
+
+for(let i=0;i<empty;i++){
+
+lobbyPlayers.innerHTML+=`
+
+<div class="rounded-2xl
+border border-dashed border-white/15
+p-4 text-slate-500">
+
+Aguardando aventureiro...
+
+</div>
+
+`;
+
+}
+
+
+readyBtn.textContent=
+ready
+?"Cancelar Pronto"
+:"Estou Pronto";
+
+
+startBtn.classList.toggle(
+"hidden",
+!host
+);
+
+startBtn.disabled=
+state.players.length<2 &&
+!botMode;
+
+return;
+
+}
+
+
+/* GAME */
+
+show("game");
+
+round.textContent=
+state.round;
+
+const current=
+state.players[state.turn];
+
+turn.textContent=
+current
+?current.name
+:"-";
+
+
+hud.innerHTML=
+
+state.players.map((player,index)=>`
+
+<div class="card glass rounded-xl p-3
+${index===state.turn
+?"active"
+:""}">
+
+<div class="flex gap-2 items-center">
+
+<div
+class="w-9 h-9 rounded-lg
+grid place-items-center"
+style="background:${player.color}">
+
+<i class="fa-solid
+${CLASSES[player.class].icon}">
+</i>
+
+</div>
+
+<b>
+${player.name}
+</b>
+
+</div>
+
+<div class="grid grid-cols-2
+gap-2 mt-3 text-sm">
+
+<div>
+
+✦
+<b>${player.score}</b>
+
+</div>
+
+<div class="text-yellow-300">
+
+★
+<b>${player.stars}</b>
+
+</div>
+
+</div>
+
+</div>
+
+`).join("");
+
+
+drawBoard();
+
+
+const myTurn=
+current &&
+current.id===myId;
+
+
+rollBtn.disabled=
+
+!myTurn ||
+state.phase!=="turn";
+
+
+if(state.phase==="turn"){
+
+status.textContent=
+
+myTurn
+?"É sua vez de rolar!"
+:"Aguardando "+current.name+"...";
+
+}else if(state.phase==="moving"){
+
+status.textContent=
+"Movendo pelo tabuleiro...";
+
+}else{
+
+status.textContent=
+"Resolvendo desafio...";
+
+}
+
+}
+
+
+/* =========================================================
+   BOARD
+========================================================= */
+
+function getPosition(index){
+
+const col=index%6;
+
+const row=Math.floor(index/6);
+
+let x=
+8+col*16.8;
+
+if(row%2){
+
+x=
+92-col*16.8;
+
+}
+
+return{
+
+x:x,
+
+y:
+12+row*25.5
+
+};
+
+}
+
+
+function drawBoard(){
+
+boardWrap.innerHTML="";
+
+
+spaces.forEach((type,index)=>{
+
+const p=
+getPosition(index);
+
+const symbols={
+
+start:"♜",
+
+algebra:"x",
+
+geometry:"△",
+
+functions:"ƒ",
+
+analysis:"∑",
+
+bonus:"⚡",
+
+star:"★"
+
+};
+
+
+const colors={
+
+start:"#facc15",
+
+algebra:"#a855f7",
+
+geometry:"#3b82f6",
+
+functions:"#ec4899",
+
+analysis:"#f97316",
+
+bonus:"#10b981",
+
+star:"#facc15"
+
+};
+
+
+const element=
+document.createElement("div");
+
+element.className="space";
+
+element.style.left=
+p.x+"%";
+
+element.style.top=
+p.y+"%";
+
+element.style.background=
+colors[type];
+
+element.innerHTML=
+symbols[type];
+
+boardWrap.append(element);
+
+});
+
+
+state.players.forEach((player,index)=>{
+
+const p=
+getPosition(player.pos);
+
+const offsets=[
+
+[-10,-8],
+[10,-8],
+[-10,10],
+[10,10]
+
+];
+
+const offset=
+offsets[index] ||
+[0,0];
+
+
+const pawn=
+document.createElement("div");
+
+pawn.className="pawn";
+
+pawn.style.background=
+player.color;
+
+pawn.style.left=
+`calc(${p.x}% + ${offset[0]}px)`;
+
+pawn.style.top=
+`calc(${p.y}% + ${offset[1]}px)`;
+
+pawn.textContent=
+index+1;
+
+boardWrap.append(pawn);
+
+});
+
+}
+
+
+/* =========================================================
+   PEER
+========================================================= */
+
+function openPeer(options={}){
+
+return new Promise(
+(resolve,reject)=>{
+
+peer=
+new Peer(options.id);
+
+peer.on("open",id=>{
+
+myId=id;
+
+resolve(id);
+
+});
+
+
+peer.on(
+"connection",
+connection=>{
+
+if(host){
+
+attachHostConnection(
+connection
+);
+
+}
+
+});
+
+
+peer.on(
+"error",
+error=>{
+
+reject(error);
+
+});
+
+});
+
+}
+
+
+/* =========================================================
+   CREATE ROOM
+========================================================= */
+
+async function createRoom(){
+
+room=
+generateRoom();
+
+host=true;
+
+botMode=false;
+
+show("lobby");
+
+toast(
+"Criando sala...",
+"fa-wand-magic-sparkles"
+);
+
+
+try{
+
+await openPeer({
+
+id:getPeerId(room)
+
+});
+
+roomCode.textContent=
+room;
+
+history.replaceState(
+null,
+"",
+"?room="+room
+);
+
+createState();
+
+render();
+
+toast(
+"Sala "+room+" criada!",
+"fa-door-open"
+);
+
+}catch(error){
+
+toast(
+"Erro ao criar sala.",
+"fa-triangle-exclamation"
+);
+
+show("menu");
+
+}
+
+}
+
+
+/* =========================================================
+   HOST CONNECTION
+========================================================= */
+
+function attachHostConnection(connection){
+
+connection.on("open",()=>{
+
+if(state.players.length>=4){
+
+connection.send({
+
+type:"full"
+
+});
+
+connection.close();
+
+return;
+
+}
+
+connections.push(connection);
+
+});
+
+
+connection.on("data",data=>{
+
+hostData(
+connection,
+data
+);
+
+});
+
+
+connection.on("close",()=>{
+
+connections=
+connections.filter(
+c=>c!==connection
+);
+
+const oldLength=
+state.players.length;
+
+state.players=
+state.players.filter(
+player=>
+player.id!==connection.peer
+);
+
+if(
+state.players.length!==oldLength
+){
+
+toast(
+"Um jogador saiu.",
+"fa-user-minus"
+);
+
+sendState();
+
+}
+
+});
+
+}
+
+
+/* =========================================================
+   JOIN ROOM
+========================================================= */
+
+async function joinRoom(code){
+
+room=code;
+
+host=false;
+
+botMode=false;
+
+show("lobby");
+
+
+try{
+
+await openPeer();
+
+
+const connection=
+peer.connect(
+getPeerId(room),
+{
+reliable:true
+}
+);
+
+
+connection.on("open",()=>{
+
+connections=[connection];
+
+roomCode.textContent=
+room;
+
+history.replaceState(
+null,
+"",
+"?room="+room
+);
+
+connection.send({
+
+type:"join",
+
+player:
+makePlayer(
+"Jogador "+myId.slice(-3),
+selectedClass,
+myId
+)
+
+});
+
+toast(
+"Conectado à sala!",
+"fa-link"
+);
+
+});
+
+
+connection.on("data",data=>{
+
+clientData(data);
+
+});
+
+
+connection.on("error",()=>{
+
+toast(
+"Erro na conexão.",
+"fa-triangle-exclamation"
+);
+
+});
+
+
+}catch(error){
+
+toast(
+"Não foi possível conectar.",
+"fa-circle-xmark"
+);
+
+show("menu");
+
+}
+
+}
+
+
+/* =========================================================
+   HOST NETWORK DATA
+========================================================= */
+
+function hostData(
+connection,
+data
+){
+
+if(data.type==="join"){
+
+if(
+state.players.some(
+player=>
+player.id===data.player.id
+)
+){
+return;
+}
+
+
+state.players.push(
+data.player
+);
+
+connection.send({
+
+type:"state",
+
+state:state
+
+});
+
+
+toast(
+data.player.name+
+" entrou!",
+"fa-user-plus"
+);
+
+sendState();
+
+}
+
+
+/* READY */
+
+if(data.type==="ready"){
+
+const player=
+state.players.find(
+p=>p.id===connection.peer
+);
+
+if(player){
+
+player.ready=
+data.ready;
+
+sendState();
+
+}
+
+}
+
+
+/* ROLL */
+
+if(data.type==="roll"){
+
+hostRoll(
+data.player
+);
+
+}
+
+
+/* ANSWER */
+
+if(data.type==="answer"){
+
+const current=
+state.players[state.turn];
+
+if(
+current &&
+current.id===connection.peer
+){
+
+finishAnswer(
+data.index
+);
+
+}
+
+}
+
+}
+
+
+/* =========================================================
+   CLIENT DATA
+========================================================= */
+
+function clientData(data){
+
+if(data.type==="state"){
+
+state=data.state;
+
+render();
+
+}
+
+
+if(data.type==="full"){
+
+toast(
+"Sala cheia.",
+"fa-users"
+);
+
+show("menu");
+
+}
+
+
+if(data.type==="quiz"){
+
+openQuiz(
+data.question
+);
+
+}
+
+
+if(data.type==="mini"){
+
+openMini(
+data.mini
+);
+
+}
+
+
+if(data.type==="win"){
+
+showWin(
+data.winner
+);
+
+}
+
+}
+
+
+/* =========================================================
+   LOBBY BUTTONS
+========================================================= */
+
+readyBtn.onclick=()=>{
+
+ready=!ready;
+
+
+if(host){
+
+state.players[0].ready=
+ready;
+
+sendState();
+
+}else{
+
+connections[0]?.send({
+
+type:"ready",
+
+ready:ready
+
+});
+
+}
+
+};
+
+
+startBtn.onclick=()=>{
+
+if(!host)return;
+
+
+if(
+state.players.length<2 &&
+!botMode
+){
+
+toast(
+"Aguardando jogadores.",
+"fa-users"
+);
+
+return;
+
+}
+
+
+if(
+!botMode &&
+state.players.some(
+player=>!player.ready
+)
+){
+
+toast(
+"Todos precisam estar prontos.",
+"fa-hourglass"
+);
+
+return;
+
+}
+
+
+startGame();
+
+};
+
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+function startGame(){
+
+state.phase="turn";
+
+state.turn=0;
+
+state.round=1;
+
+sendState();
+
+
+if(
+state.players[0].bot
+){
+
+setTimeout(
+botTurn,
+1000
+);
+
+}
+
+}
+
+
+/* =========================================================
+   SOLO
+========================================================= */
+
+soloBtn.onclick=()=>{
+
+host=true;
+
+botMode=true;
+
+room="LOCAL";
+
+myId="human";
+
+createState();
+
+state.players[0].name=
+"Você";
+
+state.players[0].ready=true;
+
+
+state.players.push(
+
+makePlayer(
+"Bot Newton",
+"Mago",
+"bot1",
+true
+),
+
+makePlayer(
+"Bot Gauss",
+"Paladino",
+"bot2",
+true
+),
+
+makePlayer(
+"Bot Hypatia",
+"Patrulheiro",
+"bot3",
+true
+)
+
+);
+
+
+state.players
+.slice(1)
+.forEach(player=>{
+
+player.ready=true;
+
+});
+
+
+roomCode.textContent=
+"LOCAL";
+
+
+startGame();
+
+};
+
+
+/* =========================================================
+   MENU BUTTONS
+========================================================= */
+
+hostBtn.onclick=
+createRoom;
+
+
+joinBtn.onclick=()=>{
+
+const code=
+prompt(
+"Digite o código da sala:"
+);
+
+if(code){
+
+joinRoom(
+code
+.trim()
+.toUpperCase()
+);
+
+}
+
+};
+
+
+/* =========================================================
+   COPY LINK
+========================================================= */
+
+copyBtn.onclick=
+async()=>{
+
+if(
+!room ||
+room==="LOCAL"
+){
+
+toast(
+"Crie uma sala primeiro.",
+"fa-key"
+);
+
+return;
+
+}
+
+
+const url=
+
+location.origin+
+location.pathname+
+"?room="+room;
+
+
+try{
+
+await navigator
+.clipboard
+.writeText(url);
+
+toast(
+"Convite copiado!",
+"fa-copy"
+);
+
+}catch(e){
+
+prompt(
+"Copie este link:",
+url
+);
+
+}
+
+};
+
+
+/* =========================================================
+   ROLL
+========================================================= */
+
+rollBtn.onclick=()=>{
+
+if(
+!state ||
+state.phase!=="turn"
+){
+return;
+}
+
+
+if(host){
+
+hostRoll(
+state.players[state.turn].id
+);
+
+}else{
+
+connections[0]?.send({
+
+type:"roll",
+
+player:myId
+
+});
+
+}
+
+};
+
+
+async function hostRoll(playerId){
+
+if(!host)return;
+
+
+if(
+state.phase!=="turn"
+){
+return;
+}
+
+
+const player=
+state.players[state.turn];
+
+
+if(
+!player ||
+player.id!==playerId
+){
+return;
+}
+
+
+const roll=
+Math.floor(
+Math.random()*6
+)+1;
+
+
+die.textContent=
+roll;
+
+
+state.phase=
+"moving";
+
+
+sendState();
+
+sound("dice");
+
+
+for(
+let i=0;
+i<roll;
+i++
+){
+
+await wait(320);
+
+player.pos=
+(player.pos+1)
+%spaces.length;
+
+sendState();
+
+sound("jump");
+
+}
+
+
+resolveSpace();
+
+}
+
+
+/* =========================================================
+   QUESTION CATEGORY
+========================================================= */
+
+function getCategories(type){
+
+if(type==="algebra"){
+
+return[
+"Álgebra",
+"Equações",
+"Operações"
+];
+
+}
+
+
+if(type==="geometry"){
+
+return[
+"Geometria"
+];
+
+}
+
+
+if(type==="functions"){
+
+return[
+"Funções",
+"Potência",
+"Potenciação"
+];
+
+}
+
+
+return[
+
+"Lógica",
+"Análise",
+"Sequência",
+"Raciocínio",
+"Probabilidade",
+"Frações",
+"Porcentagem",
+"Proporção"
+
+];
+
+}
+
+
+/* =========================================================
+   SPACE
+========================================================= */
+
+function resolveSpace(){
+
+const player=
+state.players[state.turn];
+
+const type=
+spaces[player.pos];
+
+
+/* BONUS */
+
+if(type==="bonus"){
+
+player.score+=50;
+
+toast(
+player.name+
+" recebeu +50 pontos!",
+"fa-bolt"
+);
+
+sound("correct");
+
+afterSpace();
+
+return;
+
+}
+
+
+/* STAR */
+
+if(type==="star"){
+
+player.stars++;
+
+toast(
+player.name+
+" conquistou uma Estrela!",
+"fa-star"
+);
+
+sound("star");
+
+afterSpace();
+
+return;
+
+}
+
+
+/* START */
+
+if(type==="start"){
+
+toast(
+"Portal inicial!",
+"fa-chess-rook"
+);
+
+afterSpace();
+
+return;
+
+}
+
+
+/* QUESTION */
+
+const categories=
+getCategories(type);
+
+const pool=
+qs.filter(
+question=>
+categories.includes(
+question[0]
+)
+);
+
+
+state.question=
+
+pool[
+Math.floor(
+Math.random()*
+pool.length
+)
+];
+
+
+state.phase=
+"question";
+
+
+sendState();
+
+
+broadcast({
+
+type:"quiz",
+
+question:
+state.question
+
+});
+
+
+if(player.bot){
+
+setTimeout(
+answerBot,
+1500
+);
+
+}else if(
+player.id===myId
+){
+
+openQuiz(
+state.question
+);
+
+}
+
+}
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+function openQuiz(question){
+
+quizModal
+.classList
+.remove("hidden");
+
+
+qCat.textContent=
+question[0];
+
+
+qText.textContent=
+question[1];
+
+
+answers.innerHTML=
+
+question[2]
+.map(
+(answer,index)=>`
+
+<button
+class="answer text-left
+p-4 rounded-xl
+bg-white/45
+border border-amber-900/20
+font-bold"
+
+onclick="answerHuman(${index})">
+
+<b>
+${String.fromCharCode(65+index)}.
+</b>
+
+${answer}
+
+</button>
+
+`
+)
+.join("");
+
+
+let seconds=50;
+
+
+qTime.textContent=
+seconds;
+
+
+qBar.style.width=
+"100%";
+
+
+clearInterval(qTimer);
+
+
+qTimer=setInterval(()=>{
+
+seconds--;
+
+
+qTime.textContent=
+seconds;
+
+
+qBar.style.width=
+(seconds/50*100)+"%";
+
+
+if(seconds<=0){
+
+clearInterval(qTimer);
+
+answerHuman(-1);
+
+}
+
+},1000);
+
+}
+
+
+function answerHuman(index){
+
+if(!state)return;
+
+
+const current=
+state.players[state.turn];
+
+
+if(
+current.id!==myId
+){
+return;
+}
+
+
+clearInterval(qTimer);
+
+
+if(host){
+
+finishAnswer(index);
+
+}else{
+
+connections[0]?.send({
+
+type:"answer",
+
+index:index
+
+});
+
+
+toast(
+"Resposta enviada!",
+"fa-paper-plane"
+);
+
+}
+
+
+quizModal
+.classList
+.add("hidden");
+
+}
+
+
+function answerBot(){
+
+const correct=
+Math.random()<.7;
+
+
+let index;
+
+
+if(correct){
+
+index=
+state.question[3];
+
+}else{
+
+index=
+Math.floor(
+Math.random()*4
+);
+
+}
+
+
+finishAnswer(index);
+
+}
+
+
+function finishAnswer(index){
+
+if(
+state.phase!=="question"
+){
+return;
+}
+
+
+const player=
+state.players[state.turn];
+
+
+const correct=
+
+index===
+state.question[3];
+
+
+clearInterval(qTimer);
+
+quizModal
+.classList
+.add("hidden");
+
+
+if(correct){
+
+player.score+=100;
+
+toast(
+player.name+
+" acertou! +100 pontos!",
+"fa-check"
+);
+
+sound("correct");
+
+}else{
+
+toast(
+player.name+
+" errou o desafio.",
+"fa-xmark"
+);
+
+sound("wrong");
+
+}
+
+
+state.question=null;
+
+
+afterSpace();
+
+}
+
+
+/* =========================================================
+   AFTER SPACE
+========================================================= */
+
+function afterSpace(){
+
+if(checkWinner()){
+return;
+}
+
+
+state.turn++;
+
+
+if(
+state.turn>=
+state.players.length
+){
+
+state.turn=0;
+
+state.round++;
+
+
+if(
+state.round%3===0
+){
+
+startMinigame();
+
+return;
+
+}
+
+}
+
+
+state.phase=
+"turn";
+
+
+sendState();
+
+
+if(
+state.players[state.turn].bot
+){
+
+setTimeout(
+botTurn,
+1000
+);
+
+}
+
+}
+
+
+/* =========================================================
+   BOT
+========================================================= */
+
+function botTurn(){
+
+if(
+state.phase==="turn"
+){
+
+hostRoll(
+state.players[state.turn].id
+);
+
+}
+
+}
+
+
+/* =========================================================
+   MINIGAME
+========================================================= */
+
+function startMinigame(){
+
+const games=[
+
+{
+name:"Fuga das Funções",
+text:"Mova-se para escapar das ondas matemáticas.",
+type:"wave"
+},
+
+{
+name:"Chuva de Símbolos",
+text:"Desvie dos símbolos caindo.",
+type:"rain"
+},
+
+{
+name:"Ponte dos Números",
+text:"Atravesse a ponte.",
+type:"bridge"
+}
+
+];
+
+
+const game=
+
+games[
+Math.floor(
+Math.random()*games.length
+)
+];
+
+
+state.phase=
+"mini";
+
+
+state.mini=
+game;
+
+
+sendState();
+
+
+broadcast({
+
+type:"mini",
+
+mini:game
+
+});
+
+
+openMini(game);
+
+
+setTimeout(()=>{
+
+if(
+state.phase!=="mini"
+){
+return;
+}
+
+
+cancelAnimationFrame(
+miniRAF
+);
+
+
+miniModal
+.classList
+.add("hidden");
+
+
+state.players
+.forEach(player=>{
+
+player.score+=150;
+
+});
+
+
+toast(
+"Minigame concluído! Todos recebem +150!",
+"fa-gamepad"
+);
+
+
+if(checkWinner()){
+return;
+}
+
+
+state.mini=null;
+
+state.phase=
+"turn";
+
+
+sendState();
+
+
+if(
+state.players[state.turn].bot
+){
+
+setTimeout(
+botTurn,
+1000
+);
+
+}
+
+},10000);
+
+}
+
+
+/* =========================================================
+   MINIGAME CONTROLS
+========================================================= */
+
+const keys={};
+
+
+window.addEventListener(
+"keydown",
+event=>{
+
+keys[
+event.key.toLowerCase()
+]=true;
+
+}
+);
+
+
+window.addEventListener(
+"keyup",
+event=>{
+
+keys[
+event.key.toLowerCase()
+]=false;
+
+}
+);
+
+
+function openMini(game){
+
+miniModal
+.classList
+.remove("hidden");
+
+
+miniTitle.textContent=
+game.name;
+
+
+miniText.textContent=
+game.text;
+
+
+let seconds=10;
+
+
+miniTime.textContent=
+seconds;
+
+
+const timer=
+setInterval(()=>{
+
+seconds--;
+
+miniTime.textContent=
+seconds;
+
+
+if(seconds<=0){
+
+clearInterval(timer);
+
+}
+
+},1000);
+
+
+const canvas=
+miniCanvas;
+
+const ctx=
+canvas.getContext("2d");
+
+
+let playerX=
+canvas.width/2;
+
+
+let wave=0;
+
+
+const drops=
+Array.from(
+{length:10},
+()=>({
+
+x:
+Math.random()*canvas.width,
+
+y:
+Math.random()*canvas.height,
+
+speed:
+2+Math.random()*5
+
+})
+);
+
+
+function frame(){
+
+ctx.fillStyle=
+"#07111c";
+
+ctx.fillRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+
+/* MOVE */
+
+if(
+keys.arrowleft ||
+keys.a
+){
+
+playerX=
+Math.max(
+20,
+playerX-7
+);
+
+}
+
+
+if(
+keys.arrowright ||
+keys.d
+){
+
+playerX=
+Math.min(
+canvas.width-20,
+playerX+7
+);
+
+}
+
+
+/* WAVE */
+
+if(game.type==="wave"){
+
+ctx.strokeStyle=
+"#facc15";
+
+ctx.lineWidth=7;
+
+ctx.beginPath();
+
+
+for(
+let x=0;
+x<canvas.width;
+x+=5
+){
+
+const y=
+
+190+
+Math.sin(
+(x+wave)/42
+)*65;
+
+
+if(x===0){
+
+ctx.moveTo(x,y);
+
+}else{
+
+ctx.lineTo(x,y);
+
+}
+
+}
+
+
+ctx.stroke();
+
+wave+=6;
+
+}
+
+
+/* RAIN */
+
+if(game.type==="rain"){
+
+ctx.fillStyle=
+"#ef4444";
+
+ctx.font=
+"28px Inter";
+
+
+drops.forEach(drop=>{
+
+drop.y+=
+drop.speed;
+
+
+if(
+drop.y>
+canvas.height
+){
+
+drop.y=-20;
+
+}
+
+
+ctx.fillText(
+"π",
+drop.x,
+drop.y
+);
+
+});
+
+}
+
+
+/* BRIDGE */
+
+if(game.type==="bridge"){
+
+ctx.fillStyle=
+"#9a6b35";
+
+
+for(
+let i=0;
+i<8;
+i++
+){
+
+ctx.fillRect(
+
+30+i*95,
+
+230+
+Math.sin(i)*25,
+
+70,
+
+20
+
+);
+
+}
+
+}
+
+
+/* PLAYER */
+
+ctx.fillStyle=
+"#10b981";
+
+ctx.beginPath();
+
+ctx.arc(
+
+playerX,
+
+300,
+
+20,
+
+0,
+
+Math.PI*2
+
+);
+
+ctx.fill();
+
+
+ctx.fillStyle=
+"white";
+
+ctx.font=
+"bold 18px Inter";
+
+ctx.fillText(
+"✓",
+playerX-6,
+306
+);
+
+
+miniRAF=
+requestAnimationFrame(
+frame
+);
+
+}
+
+
+frame();
+
+}
+
+
+/* =========================================================
+   WIN
+========================================================= */
+
+function checkWinner(){
+
+const winner=
+
+state.players.find(
+player=>
+
+player.stars>=3 ||
+player.score>=600
+);
+
+
+if(!winner){
+return false;
+}
+
+
+state.phase=
+"ended";
+
+
+sendState();
+
+
+broadcast({
+
+type:"win",
+
+winner:winner
+
+});
+
+
+showWin(winner);
+
+
+sound("star");
+
+
+return true;
+
+}
+
+
+function showWin(winnerPlayer){
+
+winModal
+.classList
+.remove("hidden");
+
+
+winner.textContent=
+winnerPlayer.name;
+
+
+ranking.innerHTML=
+
+[...state.players]
+
+.sort(
+(a,b)=>
+
+b.stars-a.stars ||
+b.score-a.score
+)
+
+.map(
+(player,index)=>`
+
+<div class="glass rounded-xl p-3">
+
+<div class="text-slate-400 text-xs">
+
+${index+1}º lugar
+
+</div>
+
+<b>
+
+${player.name}
+
+</b>
+
+<div class="text-yellow-300 mt-2">
+
+★ ${player.stars}
+
+·
+
+✦ ${player.score}
+
+</div>
+
+</div>
+
+`
+)
+
+.join("");
+
+}
+
+
+/* =========================================================
+   SOUND
+========================================================= */
+
+soundBtn.onclick=()=>{
+
+muted=!muted;
+
+
+soundBtn.innerHTML=
+
+`<i class="fa-solid
+${muted
+?"fa-volume-xmark"
+:"fa-volume-high"}">
+</i>`;
+
+};
+
+
+/* =========================================================
+   AUTO JOIN
+========================================================= */
+
+const params=
+new URLSearchParams(
+location.search
+);
+
+
+const autoRoom=
+params.get("room");
+
+
+if(autoRoom){
+
+setTimeout(()=>{
+
+joinRoom(
+autoRoom.toUpperCase()
+);
+
+},500);
+
+}
+
+</script>
+
+</body>
+</html>
